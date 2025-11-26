@@ -1,155 +1,325 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="tr">
 <head>
   <meta charset="utf-8" />
-  <title>Velbert Namaz & Ramazan Vakitleri</title>
+  <title>Velbert Namaz Vakitleri</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    :root {
+      --bg: #050814;
+      --card: #111827;
+      --card-soft: rgba(17, 24, 39, 0.8);
+      --text: #e5e7eb;
+      --text-soft: #9ca3af;
+      --accent-gold-1: #f1c40f;
+      --accent-gold-2: #f39c12;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #111827 0, #020617 55%, #000 100%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 480px;
+    }
+
+    h1 {
+      font-size: 1.3rem;
+      margin-bottom: 4px;
+      text-align: center;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-soft);
+      margin-bottom: 16px;
+    }
+
+    /* HEUTIGER BEREICH */
+    #today-section {
+      background: var(--card-soft);
+      border-radius: 16px;
+      padding: 14px 14px 16px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+
+    #header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+      color: var(--text-soft);
+    }
+
+    #today-date {
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    #quran-ayah {
+      font-size: 0.78rem;
+      line-height: 1.3;
+      font-style: italic;
+      color: var(--text-soft);
+      border-left: 2px solid rgba(249, 250, 251, 0.3);
+      padding-left: 8px;
+      margin-bottom: 10px;
+    }
+
+    #quran-ayah span.ref {
+      display: block;
+      margin-top: 3px;
+      font-style: normal;
+      font-weight: 500;
+      color: #facc15;
+    }
+
+    #today-prayer-times {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    @media (min-width: 420px) {
+      #today-prayer-times {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    .prayer-box {
+      position: relative;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: linear-gradient(145deg, #020617, #020617);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      display: flex;
+      flex-direction: column;
+      min-height: 52px;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .prayer-name {
+      font-size: 0.78rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+      margin-bottom: 2px;
+    }
+
+    .prayer-time {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .prayer-box.active {
+      color: #000;
+      border-color: rgba(250, 204, 21, 0.9);
+      background: radial-gradient(circle at top left, var(--accent-gold-1), var(--accent-gold-2));
+      box-shadow: 0 0 25px rgba(250, 204, 21, 0.75);
+    }
+
+    .prayer-box.active .prayer-name {
+      color: rgba(0, 0, 0, 0.8);
+      font-weight: 600;
+    }
+
+    /* kleine Legende unten */
+    .legend {
+      margin-top: 10px;
+      font-size: 0.75rem;
+      color: var(--text-soft);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-badge {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background: radial-gradient(circle at top left, var(--accent-gold-1), var(--accent-gold-2));
+      box-shadow: 0 0 10px rgba(250, 204, 21, 0.9);
+      border: 1px solid rgba(0, 0, 0, 0.6);
+    }
+  </style>
 </head>
 <body>
-  <div class="bg-decoration">
-    <div class="moon"></div>
-    <div class="lantern lantern-left"></div>
-    <div class="lantern lantern-right"></div>
+  <div class="app">
+    <h1>Velbert – Bugünkü Namaz Vakitleri</h1>
+    <p class="subtitle">Aktif vakit altın-gelb markiert</p>
+
+    <section id="today-section">
+      <div id="header-row">
+        <div id="today-date"></div>
+        <div id="today-city">Velbert</div>
+      </div>
+
+      <div id="quran-ayah"></div>
+
+      <div id="today-prayer-times">
+        <div class="prayer-box" data-prayer="imsak">
+          <span class="prayer-name">İmsak</span>
+          <span class="prayer-time" id="time-imsak"></span>
+        </div>
+        <div class="prayer-box" data-prayer="gunes">
+          <span class="prayer-name">Güneş</span>
+          <span class="prayer-time" id="time-gunes"></span>
+        </div>
+        <div class="prayer-box" data-prayer="ogle">
+          <span class="prayer-name">Öğle</span>
+          <span class="prayer-time" id="time-ogle"></span>
+        </div>
+        <div class="prayer-box" data-prayer="ikindi">
+          <span class="prayer-name">İkindi</span>
+          <span class="prayer-time" id="time-ikindi"></span>
+        </div>
+        <div class="prayer-box" data-prayer="aksam">
+          <span class="prayer-name">Akşam</span>
+          <span class="prayer-time" id="time-aksam"></span>
+        </div>
+        <div class="prayer-box" data-prayer="yatsi">
+          <span class="prayer-name">Yatsı</span>
+          <span class="prayer-time" id="time-yatsi"></span>
+        </div>
+      </div>
+
+      <div class="legend">
+        <div class="legend-badge"></div>
+        <span>Aktif olduğun vakit</span>
+      </div>
+    </section>
   </div>
 
-  <main class="container">
-    <header class="header-card">
-      <div class="top-line">
-        <div class="author">
-          Programmiert von <span class="author-name">F.Kaplan</span>
-        </div>
-        <div class="now">
-          <div id="now-date" class="now-date">–</div>
-          <div id="now-time" class="now-time">–</div>
-        </div>
-      </div>
+  <script>
+    /********** 1. KURAN AYETİ **********/
+    const ayetler = [
+      {
+        text: "Şüphesiz namaz, müminler üzerine vakitleri belirlenmiş bir farzdır.",
+        ref: "Nisâ 4:103"
+      },
+      {
+        text: "Beni anmak için namaz kıl.",
+        ref: "Tâhâ 20:14"
+      },
+      {
+        text: "Onların malları ve çocukları seni imrendirmesin. Allah bunlarla onlara dünya hayatında azap etmek ister.",
+        ref: "Tevbe 9:55"
+      }
+    ];
 
-      <div class="title-block">
-        <h1>Velbert Namaz Vakitleri</h1>
-        <p class="subtitle">
-          İmsak • Güneş • Öğle • İkindi • Akşam • Yatsı
-        </p>
-      </div>
-    </header>
+    function setQuranAyah() {
+      const ayet = ayetler[Math.floor(Math.random() * ayetler.length)];
+      const el = document.getElementById("quran-ayah");
+      el.innerHTML = `${ayet.text}<span class="ref">${ayet.ref}</span>`;
+    }
 
-    <!-- NAMAZ AYET – direkt sichtbar -->
-    <section class="ayah-card">
-      <h2>Kur’an’dan Bir Ayet (Namaz hakkında)</h2>
-      <p id="ayah-ar" class="ayah-ar"></p>
-      <p id="ayah-tr" class="ayah-tr"></p>
-      <p id="ayah-ref" class="ayah-ref"></p>
-    </section>
+    /********** 2. HEUTIGE NAMAZZEITEN **********/
+    // 👉 HIER DEINE HEUTIGEN ZEITEN EINTRAGEN (24h-Format)
+    const prayerTimesToday = {
+      imsak:  "06:05",
+      gunes:  "07:45",
+      ogle:   "13:16",
+      ikindi: "16:21",
+      aksam:  "18:46",
+      yatsi:  "20:15"
+    };
 
-    <!-- HEUTIGE VAKITLER GROSS + Allah / Muhammed -->
-    <section class="today-card">
-      <div class="today-row">
-        <div class="today-side-icon">
-          <img src="allah.png" alt="Allah" />
-        </div>
+    function setTodayTimes() {
+      document.getElementById("time-imsak").textContent = prayerTimesToday.imsak;
+      document.getElementById("time-gunes").textContent = prayerTimesToday.gunes;
+      document.getElementById("time-ogle").textContent  = prayerTimesToday.ogle;
+      document.getElementById("time-ikindi").textContent= prayerTimesToday.ikindi;
+      document.getElementById("time-aksam").textContent = prayerTimesToday.aksam;
+      document.getElementById("time-yatsi").textContent = prayerTimesToday.yatsi;
+    }
 
-        <div class="today-center">
-          <div class="today-header">
-            <h2>Bugünkü Vakitler – Velbert</h2>
-            <p id="today-date-label" class="today-date-label">–</p>
-          </div>
-          <div class="today-grid">
-            <div class="today-item">
-              <span class="today-label">İmsak</span>
-              <span id="today-imsak" class="today-time">--:--</span>
-            </div>
-            <div class="today-item">
-              <span class="today-label">Güneş</span>
-              <span id="today-gunes" class="today-time">--:--</span>
-            </div>
-            <div class="today-item">
-              <span class="today-label">Öğle</span>
-              <span id="today-ogle" class="today-time">--:--</span>
-            </div>
-            <div class="today-item">
-              <span class="today-label">İkindi</span>
-              <span id="today-ikindi" class="today-time">--:--</span>
-            </div>
-            <div class="today-item">
-              <span class="today-label">Akşam</span>
-              <span id="today-aksam" class="today-time">--:--</span>
-            </div>
-            <div class="today-item">
-              <span class="today-label">Yatsı</span>
-              <span id="today-yatsi" class="today-time">--:--</span>
-            </div>
-          </div>
+    /********** 3. DATUM OBEN ANZEIGEN **********/
+    function formatTodayDate() {
+      const d = new Date();
+      const daysTr = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
+      const monthsTr = [
+        "Ocak","Şubat","Mart","Nisan","Mayıs","Haziran",
+        "Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"
+      ];
+      const gun = daysTr[d.getDay()];
+      const ay = monthsTr[d.getMonth()];
+      const text = `${gun}, ${d.getDate()}. ${ay} ${d.getFullYear()}`;
+      document.getElementById("today-date").textContent = text;
+    }
 
-          <div class="today-extra">
-            <div id="kerahat-status" class="kerahat-status">Kerahat: –</div>
-          </div>
-        </div>
+    /********** 4. WELCHES ZEITFENSTER IST AKTIV? **********/
+    function timeToDate(timeStr) {
+      const [hh, mm] = timeStr.split(":").map(Number);
+      const d = new Date();
+      d.setHours(hh, mm, 0, 0);
+      return d;
+    }
 
-        <div class="today-side-icon">
-          <img src="muhammad.png" alt="Muhammed (s.a.v.)" />
-        </div>
-      </div>
-    </section>
+    function getActivePrayerWindow(times) {
+      const now = new Date();
 
-    <!-- TABELLE + MODUS + 365-Tage-Button -->
-    <section class="table-card">
-      <div class="table-top">
-        <div class="mode-toggle">
-          <button class="mode-btn active" data-mode="normal">
-            Namaz Takvimi
-          </button>
-          <button class="mode-btn" data-mode="ramadan">
-            Ramazan Günleri
-          </button>
-        </div>
-        <button id="refresh-btn" class="refresh-btn">
-          365 Günü Güncelle
-        </button>
-      </div>
+      const t = {
+        imsak:  timeToDate(times.imsak),
+        gunes:  timeToDate(times.gunes),
+        ogle:   timeToDate(times.ogle),
+        ikindi: timeToDate(times.ikindi),
+        aksam:  timeToDate(times.aksam),
+        yatsi:  timeToDate(times.yatsi)
+      };
 
-      <!-- Ramazan-Banner mit Bild -->
-      <div id="ramadan-banner" class="ramadan-banner">
-        <img src="ramazan.jpg"
-             alt="Hoşgeldin Ya Şehr-i Ramazan"
-             class="ramadan-img" />
-      </div>
+      const tomorrowImsak = new Date(t.imsak.getTime() + 24 * 60 * 60 * 1000);
 
-      <div class="table-header">
-        <h2 id="table-title">Velbert – Namaz Takvimi (365 Gün)</h2>
-        <p id="table-hint" class="table-hint">
-          Bugünden itibaren sonraki <strong>365 gün</strong> gösterilir.
-        </p>
-      </div>
+      if (now >= t.imsak && now < t.gunes)  return "imsak";
+      if (now >= t.gunes && now < t.ogle)   return "gunes";
+      if (now >= t.ogle && now < t.ikindi)  return "ogle";
+      if (now >= t.ikindi && now < t.aksam) return "ikindi";
+      if (now >= t.aksam && now < t.yatsi)  return "aksam";
+      if (now >= t.yatsi && now < tomorrowImsak) return "yatsi";
 
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Tarih</th>
-              <th>Gün</th>
-              <th>İmsak</th>
-              <th>Güneş</th>
-              <th>Öğle</th>
-              <th>İkindi</th>
-              <th>Akşam</th>
-              <th>Yatsı</th>
-            </tr>
-          </thead>
-          <tbody id="times-body">
-            <!-- JS füllt hier -->
-          </tbody>
-        </table>
-      </div>
-    </section>
+      return null;
+    }
 
-    <footer class="footer">
-      <p>
-        Bu sayfa sadece <strong>pratik bir takvim</strong> sunar. Kesin vakitler
-        için her zaman kendi caminin duyurularını ve takvimini esas al.
-      </p>
-    </footer>
-  </main>
+    function highlightActivePrayer() {
+      const active = getActivePrayerWindow(prayerTimesToday);
 
-  <script src="script.js"></script>
+      document
+        .querySelectorAll("#today-prayer-times .prayer-box")
+        .forEach(box => box.classList.remove("active"));
+
+      if (!active) return;
+
+      const el = document.querySelector(
+        `#today-prayer-times .prayer-box[data-prayer="${active}"]`
+      );
+      if (el) el.classList.add("active");
+    }
+
+    /********** 5. INIT **********/
+    setQuranAyah();
+    setTodayTimes();
+    formatTodayDate();
+    highlightActivePrayer();
+    // jede Minute neu checken:
+    setInterval(highlightActivePrayer, 60 * 1000);
+  </script>
 </body>
 </html>
