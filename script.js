@@ -4,7 +4,7 @@ const COUNTRY = "Germany";
 const METHOD = 13;
 
 // Dein Cloudflare-Worker
-const API_BASE = "https://orange-sunset-ee02.5wyxcfngx6.workers.dev";
+const API_BASE = "https://api.aladhan.com";
 
 // Startdatum für 365 Tage
 let viewStartDate = new Date();
