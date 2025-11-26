@@ -31,46 +31,55 @@
       <div class="title-block">
         <h1>Velbert Namaz Vakitleri</h1>
         <p class="subtitle">
-          Sabah • Güneş • Öğle • İkindi • Akşam • Yatsı
+          İmsak • Güneş • Öğle • İkindi • Akşam • Yatsı
         </p>
-      </div>
-
-      <div class="controls">
-        <div class="month-select-wrapper">
-          <label for="month-select">Ay seç:</label>
-          <select id="month-select">
-            <option value="1">Ocak</option>
-            <option value="2">Şubat</option>
-            <option value="3">Mart</option>
-            <option value="4">Nisan</option>
-            <option value="5">Mayıs</option>
-            <option value="6">Haziran</option>
-            <option value="7">Temmuz</option>
-            <option value="8">Ağustos</option>
-            <option value="9">Eylül</option>
-            <option value="10">Ekim</option>
-            <option value="11">Kasım</option>
-            <option value="12">Aralık</option>
-          </select>
-        </div>
-
-        <div class="mode-toggle">
-          <button class="mode-btn active" data-mode="month">
-            Aylık Namaz Takvimi
-          </button>
-          <button class="mode-btn" data-mode="ramadan">
-            Ramazan Günleri
-          </button>
-        </div>
       </div>
     </header>
 
+    <!-- HEUTIGE VAKITLER GROSS -->
+    <section class="today-card">
+      <div class="today-header">
+        <h2>Bugünkü Vakitler – Velbert</h2>
+        <p id="today-date-label" class="today-date-label">–</p>
+      </div>
+      <div class="today-grid">
+        <div class="today-item">
+          <span class="today-label">İmsak</span>
+          <span id="today-imsak" class="today-time">--:--</span>
+        </div>
+        <div class="today-item">
+          <span class="today-label">Güneş</span>
+          <span id="today-gunes" class="today-time">--:--</span>
+        </div>
+        <div class="today-item">
+          <span class="today-label">Öğle</span>
+          <span id="today-ogle" class="today-time">--:--</span>
+        </div>
+        <div class="today-item">
+          <span class="today-label">İkindi</span>
+          <span id="today-ikindi" class="today-time">--:--</span>
+        </div>
+        <div class="today-item">
+          <span class="today-label">Akşam</span>
+          <span id="today-aksam" class="today-time">--:--</span>
+        </div>
+        <div class="today-item">
+          <span class="today-label">Yatsı</span>
+          <span id="today-yatsi" class="today-time">--:--</span>
+        </div>
+      </div>
+
+      <div class="today-extra">
+        <div id="kerahat-status" class="kerahat-status">Kerahat: –</div>
+      </div>
+    </section>
+
+    <!-- 31 TAGE AB HEUTE -->
     <section class="table-card">
       <div class="table-header">
-        <h2 id="table-title">Velbert – Ay görünümü</h2>
+        <h2 id="table-title">Velbert – Namaz Takvimi (31 Gün)</h2>
         <p class="table-hint">
-          Gösterilen vakitler <strong>bugünden itibaren</strong> başlar.
-          Geçmiş günler otomatik olarak gizlenir.
+          Bugünden itibaren sonraki <strong>31 gün</strong> için vakitler.
         </p>
       </div>
 
@@ -80,7 +89,7 @@
             <tr>
               <th>Tarih</th>
               <th>Gün</th>
-              <th>Sabah</th>
+              <th>İmsak</th>
               <th>Güneş</th>
               <th>Öğle</th>
               <th>İkindi</th>
@@ -92,34 +101,6 @@
             <!-- JS füllt hier -->
           </tbody>
         </table>
-      </div>
-    </section>
-
-    <section class="ramadan-info-card">
-      <div class="ramadan-header">
-        <div class="mosque">
-          <div class="mosque-base"></div>
-          <div class="mosque-dome"></div>
-          <div class="mosque-minaret left"></div>
-          <div class="mosque-minaret right"></div>
-        </div>
-        <div class="ramadan-text-block">
-          <h2>Ramazan Köşesi 🌙</h2>
-          <p class="ramadan-text">
-            Ramazan modunda sadece <strong>birinci günden son güne</strong>
-            kadar olan Ramazan günleri gösterilir. Geçmiş günler saklanır.
-          </p>
-          <ul class="ramadan-tips">
-            <li>
-              <span class="pill pill-ramadan">Ramazan</span> satırları özel
-              olarak vurgulanır.
-            </li>
-            <li>
-              <strong>Sabah</strong> sahur/imsak için,
-              <strong>Akşam</strong> iftar için dikkate alınır.
-            </li>
-          </ul>
-        </div>
       </div>
     </section>
 
