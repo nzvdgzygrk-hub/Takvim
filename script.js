@@ -106,7 +106,7 @@ async function loadYearData(year) {
 
   for (let month = 1; month <= 12; month++) {
     const url =
-      "https://api.aladhan.com/v1/calendarByCity?" +
+      API_BASE + "/v1/calendarByCity?" +
       "city=" + encodeURIComponent(CITY) +
       "&country=" + encodeURIComponent(COUNTRY) +
       "&method=" + METHOD +
