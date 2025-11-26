@@ -9,11 +9,12 @@
     :root {
       --bg: #050814;
       --card: #111827;
-      --card-soft: rgba(17, 24, 39, 0.8);
+      --card-soft: rgba(17, 24, 39, 0.9);
       --text: #e5e7eb;
       --text-soft: #9ca3af;
       --accent-gold-1: #f1c40f;
       --accent-gold-2: #f39c12;
+      --danger: #f97373;
     }
 
     * {
@@ -48,6 +49,22 @@
       font-size: 0.85rem;
       color: var(--text-soft);
       margin-bottom: 16px;
+    }
+
+    /* Fehlermeldung */
+    .error-box {
+      display: none;
+      margin-bottom: 12px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(127, 29, 29, 0.9);
+      color: #fee2e2;
+      font-size: 0.8rem;
+      border: 1px solid rgba(248, 113, 113, 0.9);
+    }
+
+    .error-box.visible {
+      display: block;
     }
 
     /* HEUTIGER BEREICH */
@@ -142,7 +159,6 @@
       font-weight: 600;
     }
 
-    /* kleine Legende unten */
     .legend {
       margin-top: 10px;
       font-size: 0.75rem;
@@ -160,13 +176,103 @@
       box-shadow: 0 0 10px rgba(250, 204, 21, 0.9);
       border: 1px solid rgba(0, 0, 0, 0.6);
     }
+
+    /* KALENDER-BEREICH */
+    #calendar-section {
+      margin-top: 18px;
+      background: var(--card-soft);
+      border-radius: 16px;
+      padding: 12px;
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+
+    #calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    #calendar-header h2 {
+      font-size: 0.95rem;
+    }
+
+    #calendar-header span.info {
+      font-size: 0.7rem;
+      color: var(--text-soft);
+    }
+
+    .calendar-table-wrapper {
+      margin-top: 8px;
+      max-height: 360px;
+      overflow-y: auto;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    table.calendar-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.76rem;
+    }
+
+    .calendar-table thead {
+      position: sticky;
+      top: 0;
+      background: #020617;
+      z-index: 1;
+    }
+
+    .calendar-table th,
+    .calendar-table td {
+      padding: 6px 4px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .calendar-table th {
+      font-weight: 600;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.7);
+      font-size: 0.72rem;
+      color: var(--text-soft);
+      background: #020617;
+    }
+
+    .calendar-table tbody tr:nth-child(even) {
+      background: rgba(15, 23, 42, 0.6);
+    }
+
+    .calendar-table tbody tr:nth-child(odd) {
+      background: rgba(15, 23, 42, 0.3);
+    }
+
+    .calendar-table td {
+      border-bottom: 1px solid rgba(15, 23, 42, 0.8);
+    }
+
+    .calendar-today-row {
+      background: rgba(250, 204, 21, 0.12) !important;
+    }
+
+    .calendar-today-row td:first-child::before {
+      content: "● ";
+      color: #facc15;
+      font-size: 0.6rem;
+      vertical-align: middle;
+    }
   </style>
 </head>
 <body>
   <div class="app">
-    <h1>Velbert – Bugünkü Namaz Vakitleri</h1>
-    <p class="subtitle">Aktif vakit altın-gelb markiert</p>
+    <h1>Velbert – Namaz Vakitleri</h1>
+    <p class="subtitle">Bugünkü vakitler ve yıllık namaz takvimi</p>
 
+    <div id="error-box" class="error-box">
+      Namaz vakitleri alınırken bir hata oluştu. İnternet bağlantını kontrol et.
+    </div>
+
+    <!-- HEUTE -->
     <section id="today-section">
       <div id="header-row">
         <div id="today-date"></div>
@@ -178,39 +284,72 @@
       <div id="today-prayer-times">
         <div class="prayer-box" data-prayer="imsak">
           <span class="prayer-name">İmsak</span>
-          <span class="prayer-time" id="time-imsak"></span>
+          <span class="prayer-time" id="time-imsak">--:--</span>
         </div>
         <div class="prayer-box" data-prayer="gunes">
           <span class="prayer-name">Güneş</span>
-          <span class="prayer-time" id="time-gunes"></span>
+          <span class="prayer-time" id="time-gunes">--:--</span>
         </div>
         <div class="prayer-box" data-prayer="ogle">
           <span class="prayer-name">Öğle</span>
-          <span class="prayer-time" id="time-ogle"></span>
+          <span class="prayer-time" id="time-ogle">--:--</span>
         </div>
         <div class="prayer-box" data-prayer="ikindi">
           <span class="prayer-name">İkindi</span>
-          <span class="prayer-time" id="time-ikindi"></span>
+          <span class="prayer-time" id="time-ikindi">--:--</span>
         </div>
         <div class="prayer-box" data-prayer="aksam">
           <span class="prayer-name">Akşam</span>
-          <span class="prayer-time" id="time-aksam"></span>
+          <span class="prayer-time" id="time-aksam">--:--</span>
         </div>
         <div class="prayer-box" data-prayer="yatsi">
           <span class="prayer-name">Yatsı</span>
-          <span class="prayer-time" id="time-yatsi"></span>
+          <span class="prayer-time" id="time-yatsi">--:--</span>
         </div>
       </div>
 
       <div class="legend">
         <div class="legend-badge"></div>
-        <span>Aktif olduğun vakit</span>
+        <span>Şu an aktif olan vakit</span>
+      </div>
+    </section>
+
+    <!-- 365 TAGE -->
+    <section id="calendar-section">
+      <div id="calendar-header">
+        <h2>Yıllık Namaz Takvimi (365 Gün)</h2>
+        <span class="info">Listeyi aşağı kaydırabilirsin</span>
+      </div>
+
+      <div class="calendar-table-wrapper">
+        <table class="calendar-table">
+          <thead>
+            <tr>
+              <th>Tarih</th>
+              <th>Gün</th>
+              <th>İmsak</th>
+              <th>Güneş</th>
+              <th>Öğle</th>
+              <th>İkindi</th>
+              <th>Akşam</th>
+              <th>Yatsı</th>
+            </tr>
+          </thead>
+          <tbody id="calendar-tbody">
+            <!-- JS füllt hier die Zeilen -->
+          </tbody>
+        </table>
       </div>
     </section>
   </div>
 
   <script>
-    /********** 1. KURAN AYETİ **********/
+    // ---------- KONFIG ----------
+    const CITY = "Velbert";
+    const COUNTRY = "Germany";
+    const METHOD = 13; // 13 = Diyanet
+
+    // ---------- 1. KURAN AYETİ ----------
     const ayetler = [
       {
         text: "Şüphesiz namaz, müminler üzerine vakitleri belirlenmiş bir farzdır.",
@@ -221,8 +360,8 @@
         ref: "Tâhâ 20:14"
       },
       {
-        text: "Onların malları ve çocukları seni imrendirmesin. Allah bunlarla onlara dünya hayatında azap etmek ister.",
-        ref: "Tevbe 9:55"
+        text: "Sabret, çünkü Allah iyilik yapanların mükâfatını zayi etmez.",
+        ref: "Hûd 11:115"
       }
     ];
 
@@ -232,27 +371,7 @@
       el.innerHTML = `${ayet.text}<span class="ref">${ayet.ref}</span>`;
     }
 
-    /********** 2. HEUTIGE NAMAZZEITEN **********/
-    // 👉 HIER DEINE HEUTIGEN ZEITEN EINTRAGEN (24h-Format)
-    const prayerTimesToday = {
-      imsak:  "06:05",
-      gunes:  "07:45",
-      ogle:   "13:16",
-      ikindi: "16:21",
-      aksam:  "18:46",
-      yatsi:  "20:15"
-    };
-
-    function setTodayTimes() {
-      document.getElementById("time-imsak").textContent = prayerTimesToday.imsak;
-      document.getElementById("time-gunes").textContent = prayerTimesToday.gunes;
-      document.getElementById("time-ogle").textContent  = prayerTimesToday.ogle;
-      document.getElementById("time-ikindi").textContent= prayerTimesToday.ikindi;
-      document.getElementById("time-aksam").textContent = prayerTimesToday.aksam;
-      document.getElementById("time-yatsi").textContent = prayerTimesToday.yatsi;
-    }
-
-    /********** 3. DATUM OBEN ANZEIGEN **********/
+    // ---------- 2. DATUM ANZEIGEN ----------
     function formatTodayDate() {
       const d = new Date();
       const daysTr = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
@@ -266,24 +385,30 @@
       document.getElementById("today-date").textContent = text;
     }
 
-    /********** 4. WELCHES ZEITFENSTER IST AKTIV? **********/
-    function timeToDate(timeStr) {
+    // ---------- 3. ZEITEN HILFSFUNKTIONEN ----------
+    function cleanTime(str) {
+      // "06:23 (CET)" -> "06:23"
+      if (!str) return null;
+      return str.split(" ")[0];
+    }
+
+    function timeToDate(timeStr, baseDate) {
       const [hh, mm] = timeStr.split(":").map(Number);
-      const d = new Date();
+      const d = new Date(baseDate.getTime());
       d.setHours(hh, mm, 0, 0);
       return d;
     }
 
-    function getActivePrayerWindow(times) {
+    function getActivePrayerWindow(times, baseDate) {
       const now = new Date();
 
       const t = {
-        imsak:  timeToDate(times.imsak),
-        gunes:  timeToDate(times.gunes),
-        ogle:   timeToDate(times.ogle),
-        ikindi: timeToDate(times.ikindi),
-        aksam:  timeToDate(times.aksam),
-        yatsi:  timeToDate(times.yatsi)
+        imsak:  timeToDate(times.imsak, baseDate),
+        gunes:  timeToDate(times.gunes, baseDate),
+        ogle:   timeToDate(times.ogle, baseDate),
+        ikindi: timeToDate(times.ikindi, baseDate),
+        aksam:  timeToDate(times.aksam, baseDate),
+        yatsi:  timeToDate(times.yatsi, baseDate)
       };
 
       const tomorrowImsak = new Date(t.imsak.getTime() + 24 * 60 * 60 * 1000);
@@ -298,8 +423,8 @@
       return null;
     }
 
-    function highlightActivePrayer() {
-      const active = getActivePrayerWindow(prayerTimesToday);
+    function highlightActivePrayer(todayTimes, baseDate) {
+      const active = getActivePrayerWindow(todayTimes, baseDate);
 
       document
         .querySelectorAll("#today-prayer-times .prayer-box")
@@ -313,13 +438,174 @@
       if (el) el.classList.add("active");
     }
 
-    /********** 5. INIT **********/
-    setQuranAyah();
-    setTodayTimes();
-    formatTodayDate();
-    highlightActivePrayer();
-    // jede Minute neu checken:
-    setInterval(highlightActivePrayer, 60 * 1000);
+    function showError(msg) {
+      const box = document.getElementById("error-box");
+      box.textContent = msg;
+      box.classList.add("visible");
+    }
+
+    // ---------- 4. API AUFRUF: KALENDER LADEN ----------
+    async function fetchMonth(month, year) {
+      const url =
+        "https://api.aladhan.com/v1/calendarByCity" +
+        `?city=${encodeURIComponent(CITY)}` +
+        `&country=${encodeURIComponent(COUNTRY)}` +
+        `&method=${METHOD}` +
+        `&month=${month}&year=${year}`;
+
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error("API-Fehler " + res.status);
+      }
+      const json = await res.json();
+      if (json.code !== 200 || !json.data) {
+        throw new Error("API dönüş hatası");
+      }
+      return json.data;
+    }
+
+    function buildCalendarData(allMonthsData, year) {
+      const rows = [];
+      allMonthsData.forEach((monthData, mi) => {
+        const monthIndex = mi; // 0–11
+        monthData.forEach(dayObj => {
+          const g = dayObj.date.gregorian;
+          const isoDate = g.date.split("-").reverse().join("-"); // "03-01-2025" -> "2025-01-03"? BESSER: direkt g.date ist "03-01-2025"
+          // Laut Aladhan: gregorian.date = "03-01-2015" (DD-MM-YYYY)
+          const parts = g.date.split("-");
+          const dd = parts[0];
+          const mm = parts[1];
+          const yyyy = parts[2];
+          const iso = `${yyyy}-${mm}-${dd}`;
+
+          const dayNamesTr = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
+          const jsDate = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+          const dayName = dayNamesTr[jsDate.getDay()];
+
+          const t = dayObj.timings;
+
+          rows.push({
+            isoDate: iso,
+            readable: `${dd}.${mm}.${yyyy}`,
+            dayName,
+            imsak: cleanTime(t.Fajr),
+            gunes: cleanTime(t.Sunrise),
+            ogle: cleanTime(t.Dhuhr),
+            ikindi: cleanTime(t.Asr),
+            aksam: cleanTime(t.Maghrib),
+            yatsi: cleanTime(t.Isha)
+          });
+        });
+      });
+      // zur Sicherheit sortieren
+      rows.sort((a, b) => a.isoDate.localeCompare(b.isoDate));
+      return rows;
+    }
+
+    function renderCalendar(rows) {
+      const tbody = document.getElementById("calendar-tbody");
+      tbody.innerHTML = "";
+      const todayIso = new Date().toISOString().slice(0, 10);
+      let todayRowElement = null;
+
+      rows.forEach(row => {
+        const tr = document.createElement("tr");
+
+        if (row.isoDate === todayIso) {
+          tr.classList.add("calendar-today-row");
+          todayRowElement = tr;
+        }
+
+        tr.innerHTML = `
+          <td>${row.readable}</td>
+          <td>${row.dayName}</td>
+          <td>${row.imsak}</td>
+          <td>${row.gunes}</td>
+          <td>${row.ogle}</td>
+          <td>${row.ikindi}</td>
+          <td>${row.aksam}</td>
+          <td>${row.yatsi}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Zu heute scrollen
+      if (todayRowElement) {
+        const wrapper = document.querySelector(".calendar-table-wrapper");
+        const rowTop = todayRowElement.offsetTop;
+        wrapper.scrollTop = Math.max(rowTop - 80, 0);
+      }
+    }
+
+    function setTodayBoxTimes(todayRow) {
+      if (!todayRow) return;
+      document.getElementById("time-imsak").textContent = todayRow.imsak;
+      document.getElementById("time-gunes").textContent = todayRow.gunes;
+      document.getElementById("time-ogle").textContent  = todayRow.ogle;
+      document.getElementById("time-ikindi").textContent= todayRow.ikindi;
+      document.getElementById("time-aksam").textContent = todayRow.aksam;
+      document.getElementById("time-yatsi").textContent = todayRow.yatsi;
+    }
+
+    // ---------- 5. HAUPTFUNKTION ----------
+    async function init() {
+      try {
+        document.getElementById("today-city").textContent = CITY;
+        setQuranAyah();
+        formatTodayDate();
+
+        const now = new Date();
+        const year = now.getFullYear();
+
+        // 12 Monate parallel laden
+        const monthPromises = [];
+        for (let m = 1; m <= 12; m++) {
+          monthPromises.push(fetchMonth(m, year));
+        }
+        const allMonthsData = await Promise.all(monthPromises);
+
+        const calendarRows = buildCalendarData(allMonthsData, year);
+        renderCalendar(calendarRows);
+
+        const todayIso = now.toISOString().slice(0, 10);
+        const todayRow = calendarRows.find(r => r.isoDate === todayIso);
+
+        if (todayRow) {
+          setTodayBoxTimes(todayRow);
+          highlightActivePrayer(
+            {
+              imsak: todayRow.imsak,
+              gunes: todayRow.gunes,
+              ogle:  todayRow.ogle,
+              ikindi:todayRow.ikindi,
+              aksam: todayRow.aksam,
+              yatsi: todayRow.yatsi
+            },
+            now
+          );
+
+          // jede Minute aktuell halten
+          setInterval(() => {
+            highlightActivePrayer(
+              {
+                imsak: todayRow.imsak,
+                gunes: todayRow.gunes,
+                ogle:  todayRow.ogle,
+                ikindi:todayRow.ikindi,
+                aksam: todayRow.aksam,
+                yatsi: todayRow.yatsi
+              },
+              new Date()
+            );
+          }, 60 * 1000);
+        }
+      } catch (err) {
+        console.error(err);
+        showError("Namaz vakitleri alınırken bir hata oluştu. (API / internet olabilir.)");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", init);
   </script>
 </body>
 </html>
