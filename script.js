@@ -2,13 +2,17 @@ const CITY = "Velbert";
 const COUNTRY = "Germany";
 const METHOD = 13; // Turkish Diyanet
 
-const CURRENT_YEAR = new Date().getFullYear();
+const NOW = new Date();
+const CURRENT_YEAR = NOW.getFullYear();
 const NEXT_YEAR = CURRENT_YEAR + 1;
 
-const prayerData = {}; // { [year]: { year:[..] } }
+const prayerData = {}; // { [year]: { year:[..], ramadan:[..] } }
 
 const tableBody = document.getElementById("times-body");
 const tableTitle = document.getElementById("table-title");
+const tableHintEl = document.getElementById("table-hint");
+const ramadanBanner = document.getElementById("ramadan-banner");
+const modeButtons = document.querySelectorAll(".mode-btn");
 
 const ayAr = document.getElementById("ayah-ar");
 const ayTr = document.getElementById("ayah-tr");
@@ -52,23 +56,62 @@ const monthNamesTr = [
   "Aralık",
 ];
 
+// viele verschiedene kurze Ayetler
 const ayatList = [
   {
     ar: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا",
     tr: "Şüphesiz zorlukla beraber bir kolaylık vardır.",
-    ref: "İnşirah Suresi, 94:6",
+    ref: "İnşirah, 94:6",
   },
   {
     ar: "إِنَّ اللَّهَ مَعَ الصَّابِرِينَ",
     tr: "Şüphesiz Allah sabredenlerle beraberdir.",
-    ref: "Bakara Suresi, 2:153",
+    ref: "Bakara, 2:153",
   },
   {
     ar: "ادْعُونِي أَسْتَجِبْ لَكُمْ",
     tr: "Bana dua edin, size cevap vereyim.",
-    ref: "Mümin Suresi, 40:60",
+    ref: "Mümin, 40:60",
+  },
+  {
+    ar: "وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ",
+    tr: "Siz nerede olursanız olun, O sizinle beraberdir.",
+    ref: "Hadid, 57:4",
+  },
+  {
+    ar: "لَا تَقْنَطُوا مِن رَّحْمَةِ اللَّهِ",
+    tr: "Allah’ın rahmetinden ümidinizi kesmeyin.",
+    ref: "Zümer, 39:53",
+  },
+  {
+    ar: "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ",
+    tr: "Kalpler ancak Allah’ı zikretmekle huzur bulur.",
+    ref: "Ra’d, 13:28",
+  },
+  {
+    ar: "وَعَسَى أَن تَكْرَهُوا شَيْئًا وَهُوَ خَيْرٌ لَّكُمْ",
+    tr: "Hoşunuza gitmeyen bir şeyde sizin için hayır olabilir.",
+    ref: "Bakara, 2:216",
+  },
+  {
+    ar: "وَمَن يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ",
+    tr: "Kim Allah’a tevekkül ederse, O ona yeter.",
+    ref: "Talak, 65:3",
+  },
+  {
+    ar: "وَمَا تَوْفِيقِي إِلَّا بِاللَّهِ",
+    tr: "Başarım ancak Allah’ın yardımı iledir.",
+    ref: "Hud, 11:88",
+  },
+  {
+    ar: "إِنَّ رَحْمَتَ اللَّهِ قَرِيبٌ مِّنَ الْمُحْسِنِينَ",
+    tr: "Şüphesiz Allah’ın rahmeti iyilik yapanlara yakındır.",
+    ref: "A’raf, 7:56",
   },
 ];
+
+let currentMode = "normal"; // "normal" oder "ramadan"
+let kerahatIntervalId = null;
 
 function cleanTime(str) {
   return String(str).split(" ")[0];
@@ -78,6 +121,7 @@ async function loadYearData(year) {
   if (prayerData[year]) return;
 
   const yearRows = [];
+  const ramadanRows = [];
 
   for (let month = 1; month <= 12; month++) {
     const url =
@@ -98,6 +142,7 @@ async function loadYearData(year) {
 
     json.data.forEach((dayObj) => {
       const g = dayObj.date.gregorian;
+      const h = dayObj.date.hijri;
       const t = dayObj.timings;
 
       const [dayStr, monthStr, yearStr] = g.date.split("-");
@@ -121,14 +166,19 @@ async function loadYearData(year) {
         ikindi: cleanTime(t.Asr),
         aksam: cleanTime(t.Maghrib),
         yatsi: cleanTime(t.Isha),
+        isRamadan: h.month.number === 9,
       };
 
       yearRows.push(row);
+      if (row.isRamadan) {
+        ramadanRows.push(row);
+      }
     });
   }
 
   prayerData[year] = {
     year: yearRows,
+    ramadan: ramadanRows,
   };
 }
 
@@ -164,13 +214,13 @@ function toDateFromRow(row) {
 }
 
 function parseTimeOnDate(row, timeStr) {
-  // timeStr "HH:MM"
   const [hh, mm] = timeStr.split(":").map((v) => parseInt(v, 10));
   return new Date(row.yearNum, row.monthNum - 1, row.dayNum, hh, mm, 0, 0);
 }
 
-function renderTodayBlock(allRows) {
+function renderTodayBlock(todayRow) {
   if (
+    !todayRow ||
     !todayImsakEl ||
     !todayGunesEl ||
     !todayOgleEl ||
@@ -181,22 +231,9 @@ function renderTodayBlock(allRows) {
   )
     return;
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const todayRow = allRows.find((row) => {
-    const rd = toDateFromRow(row);
-    return rd.getTime() === today.getTime();
-  });
-
-  if (!todayRow) {
-    todayDateLabel.textContent = "Bugünkü vakitler bulunamadı.";
-    return;
-  }
-
   const d = pad2(todayRow.dayNum);
-  const m = monthNamesTr[todayRow.monthNum] || "";
-  todayDateLabel.textContent = `${todayRow.day} • ${d} ${m} ${todayRow.yearNum}`;
+  const mName = monthNamesTr[todayRow.monthNum] || "";
+  todayDateLabel.textContent = `${todayRow.day} • ${d} ${mName} ${todayRow.yearNum}`;
 
   todayImsakEl.textContent = todayRow.imsak;
   todayGunesEl.textContent = todayRow.gunes;
@@ -213,15 +250,14 @@ function updateKerahat(todayRow) {
 
   try {
     const now = new Date();
-
     const ikindiTime = parseTimeOnDate(todayRow, todayRow.ikindi);
     const aksamTime = parseTimeOnDate(todayRow, todayRow.aksam);
 
     if (now >= ikindiTime && now < aksamTime) {
-      const diffMs = aksamTime - now;
-      const diffMin = diffMs / (1000 * 60);
+      const diffMin = (aksamTime - now) / (1000 * 60);
       if (diffMin <= 45) {
-        kerahatStatusEl.textContent = "Kerahat: İkindi ile Akşam arası (son 45 dakika).";
+        kerahatStatusEl.textContent =
+          "Kerahat: İkindi ile Akşam arası son 45 dakika.";
         return;
       }
     }
@@ -231,6 +267,33 @@ function updateKerahat(todayRow) {
     console.error(e);
     kerahatStatusEl.textContent = "Kerahat: –";
   }
+}
+
+function setMode(newMode) {
+  currentMode = newMode;
+  modeButtons.forEach((btn) => {
+    if (btn.dataset.mode === newMode) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+    }
+  });
+
+  if (ramadanBanner) {
+    ramadanBanner.classList.toggle("visible", newMode === "ramadan");
+  }
+
+  if (tableHintEl) {
+    if (newMode === "normal") {
+      tableHintEl.innerHTML =
+        'Bugünden itibaren sonraki <strong>31 gün</strong> için vakitler.';
+    } else {
+      tableHintEl.textContent =
+        "Bugünden itibaren Ramazan günleri (birinci günden son güne kadar) gösterilir.";
+    }
+  }
+
+  renderTableAndToday();
 }
 
 async function renderTableAndToday() {
@@ -245,27 +308,54 @@ async function renderTableAndToday() {
 
     const rowsCurrent = prayerData[CURRENT_YEAR].year;
     const rowsNext = prayerData[NEXT_YEAR].year;
+    const ramadanCurrent = prayerData[CURRENT_YEAR].ramadan;
+    const ramadanNext = prayerData[NEXT_YEAR].ramadan;
 
     const allRows = [...rowsCurrent, ...rowsNext];
-
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const limit = new Date(today);
-    limit.setDate(limit.getDate() + 30); // heute + 30 = 31 Tage total
+    // Heute-Row finden für oben
+    const todayRow = allRows.find((row) => {
+      const rd = toDateFromRow(row);
+      return rd.getTime() === today.getTime();
+    });
+    if (todayRow) renderTodayBlock(todayRow);
 
-    const rowsToShow = allRows
-      .filter((row) => {
+    // Kerahat-Interval nur einmal setzen
+    if (kerahatIntervalId) clearInterval(kerahatIntervalId);
+    if (todayRow) {
+      kerahatIntervalId = setInterval(() => updateKerahat(todayRow), 60_000);
+    }
+
+    let rowsToShow = [];
+
+    if (currentMode === "normal") {
+      const limit = new Date(today);
+      limit.setDate(limit.getDate() + 30); // heute + 30 => 31 Tage
+
+      rowsToShow = allRows
+        .filter((row) => {
+          const rd = toDateFromRow(row);
+          return rd >= today && rd <= limit;
+        })
+        .sort((a, b) => toDateFromRow(a) - toDateFromRow(b));
+
+      tableTitle.textContent =
+        "Velbert – Namaz Takvimi (Bugünden 31 Gün)";
+    } else {
+      const allRamadan = [...ramadanCurrent, ...ramadanNext].sort(
+        (a, b) => toDateFromRow(a) - toDateFromRow(b)
+      );
+
+      rowsToShow = allRamadan.filter((row) => {
         const rd = toDateFromRow(row);
-        return rd >= today && rd <= limit;
-      })
-      .sort((a, b) => {
-        const da = toDateFromRow(a);
-        const db = toDateFromRow(b);
-        return da - db;
+        return rd >= today;
       });
 
-    tableTitle.textContent = "Velbert – Namaz Takvimi (Bugünden 31 Gün)";
+      tableTitle.textContent =
+        "Velbert – Ramazan Günleri (birinci günden son güne kadar)";
+    }
 
     tableBody.innerHTML = "";
 
@@ -279,7 +369,6 @@ async function renderTableAndToday() {
 
     rowsToShow.forEach((row) => {
       const tr = document.createElement("tr");
-
       tr.innerHTML = `
         <td class="date-cell">${row.date}</td>
         <td class="day-cell">${row.day}</td>
@@ -290,23 +379,8 @@ async function renderTableAndToday() {
         <td>${row.aksam}</td>
         <td>${row.yatsi}</td>
       `;
-
       tableBody.appendChild(tr);
     });
-
-    // Heute-Block
-    renderTodayBlock(allRows);
-
-    // Kerahat jede Minute prüfen
-    setInterval(() => {
-      const todayRow = allRows.find((row) => {
-        const rd = toDateFromRow(row);
-        const t = new Date();
-        t.setHours(0, 0, 0, 0);
-        return rd.getTime() === t.getTime();
-      });
-      if (todayRow) updateKerahat(todayRow);
-    }, 60 * 1000);
   } catch (err) {
     console.error(err);
     tableBody.innerHTML =
@@ -314,7 +388,17 @@ async function renderTableAndToday() {
   }
 }
 
+/* Event-Listener */
+
+modeButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const mode = btn.dataset.mode;
+    setMode(mode);
+  });
+});
+
 /* Initialisierung */
+
 renderRandomAyah();
 updateClock();
 setInterval(updateClock, 1000);
