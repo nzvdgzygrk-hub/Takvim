@@ -33,7 +33,7 @@
       </div>
     </header>
 
-    <!-- HEUTIGE VAKITLER GROSS + Allah / Muhammed -->
+    <!-- BUGÜNKÜ VAKİTLER -->
     <section class="today-card">
       <div class="today-row">
         <div class="today-side-icon">
@@ -83,7 +83,7 @@
       </div>
     </section>
 
-    <!-- AYET direkt unter Bugünkü Vakitler -->
+    <!-- AYET -->
     <section class="ayah-card">
       <div class="ayah-header">
         <h2>Kur’an’dan Bir Ayet (Namaz hakkında)</h2>
@@ -96,7 +96,46 @@
       <p id="ayah-ref" class="ayah-ref"></p>
     </section>
 
-    <!-- TABELLE + MODUS + 365-Tage-Button -->
+    <!-- OFFSET-EINSTELLUNGEN -->
+    <section class="offset-card">
+      <h2>Vakit Düzeltme (Dakika)</h2>
+      <p class="offset-hint">
+        Namaz vakitlerini kendi takviminle eşitlemek için dakika farkını gir.
+        (Pozitif = daha geç, negatif = daha erken)
+      </p>
+      <div class="offset-grid">
+        <div class="offset-item">
+          <label for="offset-imsak">İmsak</label>
+          <input type="number" id="offset-imsak" />
+        </div>
+        <div class="offset-item">
+          <label for="offset-gunes">Güneş</label>
+          <input type="number" id="offset-gunes" />
+        </div>
+        <div class="offset-item">
+          <label for="offset-ogle">Öğle</label>
+          <input type="number" id="offset-ogle" />
+        </div>
+        <div class="offset-item">
+          <label for="offset-ikindi">İkindi</label>
+          <input type="number" id="offset-ikindi" />
+        </div>
+        <div class="offset-item">
+          <label for="offset-aksam">Akşam</label>
+          <input type="number" id="offset-aksam" />
+        </div>
+        <div class="offset-item">
+          <label for="offset-yatsi">Yatsı</label>
+          <input type="number" id="offset-yatsi" />
+        </div>
+      </div>
+      <button id="offset-save-btn" class="offset-save-btn">
+        Ayarları Kaydet
+      </button>
+      <p class="offset-saved" id="offset-saved-msg"></p>
+    </section>
+
+    <!-- TABELLE -->
     <section class="table-card">
       <div class="table-top">
         <div class="mode-toggle">
@@ -112,7 +151,6 @@
         </button>
       </div>
 
-      <!-- Ramazan-Banner mit Bild -->
       <div id="ramadan-banner" class="ramadan-banner">
         <img
           src="ramazan.jpg"
@@ -143,7 +181,6 @@
             </tr>
           </thead>
           <tbody id="times-body">
-            <!-- JS füllt hier -->
           </tbody>
         </table>
       </div>
