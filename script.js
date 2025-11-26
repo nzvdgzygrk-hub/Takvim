@@ -1,3 +1,4 @@
+const API_BASE = "https://orange-sunset-ee02.5wyxcfngx6.workers.dev";
 const CITY = "Velbert";
 const COUNTRY = "Germany";
 const METHOD = 13; // Turkish Diyanet
