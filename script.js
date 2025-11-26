@@ -1,15 +1,15 @@
+// Konfiguration
 const CITY = "Velbert";
 const COUNTRY = "Germany";
-const METHOD = 13; // Turkish Diyanet
+const METHOD = 13;
 
-// dein Cloudflare-Worker
+// Dein Cloudflare-Worker
 const API_BASE = "https://orange-sunset-ee02.5wyxcfngx6.workers.dev";
 
-// Startpunkt für die Ansicht (365 Tage ab diesem Datum)
+// Startdatum für 365 Tage
 let viewStartDate = new Date();
 
-const prayerData = {}; // { [year]: { year:[..], ramadan:[..] } }
-
+// DOM-Elemente
 const tableBody = document.getElementById("times-body");
 const tableTitle = document.getElementById("table-title");
 const tableHintEl = document.getElementById("table-hint");
@@ -35,6 +35,9 @@ const todayAksamEl = document.getElementById("today-aksam");
 const todayYatsiEl = document.getElementById("today-yatsi");
 const kerahatStatusEl = document.getElementById("kerahat-status");
 
+// Daten-Cache im Speicher (kein localStorage – erstmal stabil)
+const prayerData = {}; // { [year]: {year:[..], ramadan:[..]} }
+
 const weekdayMap = {
   Sunday: "Pazar",
   Monday: "Pazartesi",
@@ -42,7 +45,7 @@ const weekdayMap = {
   Wednesday: "Çarşamba",
   Thursday: "Perşembe",
   Friday: "Cuma",
-  Saturday: "Cumartesi"
+  Saturday: "Cumartesi",
 };
 
 const monthNamesTr = [
@@ -58,10 +61,10 @@ const monthNamesTr = [
   "Eylül",
   "Ekim",
   "Kasım",
-  "Aralık"
+  "Aralık",
 ];
 
-// Ayet-Liste (gekürzt, Fokus auf Namaz)
+// Viele verschiedene Ayet (du kannst beliebig erweitern)
 const ayatList = [
   { ar: "إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَّوْقُوتًا",
     tr: "Namaz, müminler üzerine vakitleri belirlenmiş bir farzdır.",
@@ -70,20 +73,17 @@ const ayatList = [
     tr: "Beni anmak için namaz kıl.",
     ref: "Taha, 20:14" },
   { ar: "أَقِمِ الصَّلَاةَ إِنَّ الصَّلَاةَ تَنْهَىٰ عَنِ الْفَحْشَاءِ",
-    tr: "Namazı kıl; çünkü namaz hayasızlıktan alıkoyar.",
+    tr: "Namazı kıl; çünkü namaz hayasızlıktan ve kötülükten alıkoyar.",
     ref: "Ankebut, 29:45" },
-  { ar: "حَافِظُوا عَلَى الصَّلَوَاتِ وَالصَّلَاةِ الْوُسْطَىٰ",
-    tr: "Namazlara ve orta namaza devam edin.",
-    ref: "Bakara, 2:238" },
   { ar: "وَاسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ",
     tr: "Sabır ve namazla Allah’tan yardım isteyin.",
     ref: "Bakara, 2:45" },
   { ar: "يَا أَيُّهَا الَّذِينَ آمَنُوا اسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ",
     tr: "Ey iman edenler! Sabır ve namazla yardım isteyin.",
     ref: "Bakara, 2:153" },
-  { ar: "إِنَّ اللّهَ مَعَ الصَّابِرِينَ",
-    tr: "Şüphesiz Allah sabredenlerle beraberdir.",
-    ref: "Bakara, 2:153" },
+  { ar: "حَافِظُوا عَلَى الصَّلَوَاتِ وَالصَّلَاةِ الْوُسْطَىٰ",
+    tr: "Namazlara ve orta namaza devam edin.",
+    ref: "Bakara, 2:238" },
   { ar: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا",
     tr: "Şüphesiz zorlukla beraber bir kolaylık vardır.",
     ref: "İnşirah, 94:6" },
@@ -114,169 +114,37 @@ const ayatList = [
   { ar: "وَعَسَى أَن تَكْرَهُوا شَيْئًا وَهُوَ خَيْرٌ لَّكُمْ",
     tr: "Hoşunuza gitmeyen bir şeyde sizin için hayır olabilir.",
     ref: "Bakara, 2:216" },
-  { ar: "وَعَسَى أَن تُحِبُّوا شَيْئًا وَهُوَ شَرٌّ لَّكُمْ",
-    tr: "Sevdiğiniz bir şey de sizin için şer olabilir.",
-    ref: "Bakara, 2:216" },
-  { ar: "إِنَّ اللَّهَ يُحِبُّ الْمُتَوَكِّلِينَ",
-    tr: "Allah tevekkül edenleri sever.",
-    ref: "Al-i İmran, 3:159" },
-  { ar: "إِنَّ اللَّهَ يُحِبُّ الْمُحْسِنِينَ",
-    tr: "Allah iyilik yapanları sever.",
-    ref: "Bakara, 2:195" },
-  { ar: "إِنَّ اللَّهَ يُحِبُّ الْتَّوَّابِينَ",
-    tr: "Allah çokça tevbe edenleri sever.",
-    ref: "Bakara, 2:222" },
-  { ar: "إِنَّ اللَّهَ يُحِبُّ الْمُتَطَهِّرِينَ",
-    tr: "Allah temizlenenleri sever.",
-    ref: "Bakara, 2:222" },
-  { ar: "إِنَّ اللَّهَ لَا يُضِيعُ أَجْرَ الْمُحْسِنِينَ",
-    tr: "Allah iyilik yapanların ecrini zayi etmez.",
-    ref: "Tevbe, 9:120" },
-  { ar: "إِنَّ اللَّهَ غَفُورٌ رَّحِيمٌ",
-    tr: "Şüphesiz Allah çok bağışlayandır, çok merhamet edendir.",
-    ref: "Bakara, 2:173" },
-  { ar: "فَاسْتَقِمْ كَمَا أُمِرْتَ",
-    tr: "Emrolunduğun gibi dosdoğru ol.",
-    ref: "Hud, 11:112" },
-  { ar: "وَبَشِّرِ الصَّابِرِينَ",
-    tr: "Sabredenleri müjdele.",
-    ref: "Bakara, 2:155" },
-  { ar: "رَّبِّ زِدْنِي عِلْمًا",
-    tr: "Rabbim, ilmimi artır.",
-    ref: "Taha, 20:114" },
-  { ar: "رَبِّ اشْرَحْ لِي صَدْرِي",
-    tr: "Rabbim göğsümü genişlet.",
-    ref: "Taha, 20:25" },
-  { ar: "رَبَّنَا ظَلَمْنَا أَنفُسَنَا",
-    tr: "Rabbimiz, biz kendimize zulmettik.",
-    ref: "A’raf, 7:23" },
-  { ar: "رَبَّنَا اغْفِرْ لَنَا ذُنُوبَنَا",
-    tr: "Rabbimiz, günahlarımızı bağışla.",
-    ref: "Al-i İmran, 3:16" },
-  { ar: "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً",
-    tr: "Rabbimiz, bize dünyada iyilik ver.",
-    ref: "Bakara, 2:201" },
-  { ar: "وَفِي الْآخِرَةِ حَسَنَةً",
-    tr: "Ahirette de iyilik ver.",
-    ref: "Bakara, 2:201" },
-  { ar: "رَبَّنَا تَقَبَّلْ مِنَّا",
-    tr: "Rabbimiz, bizden (ibadetimizi) kabul eyle.",
-    ref: "Bakara, 2:127" },
-  { ar: "رَبِّ اغْفِرْ وَارْحَمْ",
-    tr: "Rabbim, bağışla ve merhamet et.",
-    ref: "Müminun, 23:118" },
-  { ar: "فَاذْكُرُونِي أَذْكُرْكُمْ",
-    tr: "Beni anın ki ben de sizi anayım.",
-    ref: "Bakara, 2:152" },
-  { ar: "لَا خَوْفٌ عَلَيْهِمْ وَلَا هُمْ يَحْزَنُونَ",
-    tr: "Onlara korku yoktur, onlar mahzun olmayacaklardır.",
-    ref: "Yunus, 10:62" },
-  { ar: "وَلَا تَيْأَسُوا مِن رَّوْحِ اللَّهِ",
-    tr: "Allah’ın rahmetinden ümidinizi kesmeyin.",
-    ref: "Yusuf, 12:87" },
-  { ar: "إِنَّ أَكْرَمَكُمْ عِندَ اللَّهِ أَتْقَاكُمْ",
-    tr: "Allah katında en değerliniz, en takvalı olanınızdır.",
-    ref: "Hucurat, 49:13" },
-  { ar: "إِنَّ اللّهَ لاَ يُغَيِّرُ مَا بِقَوْمٍ",
-    tr: "Allah, bir kavim kendini değiştirmedikçe durumlarını değiştirmez.",
-    ref: "Ra’d, 13:11" },
-  { ar: "اللَّهُ نُورُ السَّمَاوَاتِ وَالْأَرْضِ",
-    tr: "Allah göklerin ve yerin nurudur.",
-    ref: "Nur, 24:35" },
   { ar: "حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ",
     tr: "Allah bize yeter, O ne güzel vekildir.",
     ref: "Al-i İmran, 3:173" },
-  { ar: "نِعْمَ الْمَوْلَى وَنِعْمَ النَّصِيرُ",
-    tr: "O ne güzel Mevlâ, ne güzel yardımcıdır.",
-    ref: "Enfal, 8:40" },
-  { ar: "إِنَّ رَبِّي لَطِيفٌ لِّمَا يَشَاءُ",
-    tr: "Rabbim dilediğine karşı lütuf sahibidir.",
-    ref: "Yusuf, 12:100" },
-  { ar: "إِنَّ رَبَّكَ غَفُورٌ رَّحِيمٌ",
-    tr: "Şüphesiz Rabbin çok bağışlayan, çok merhamet edendir.",
-    ref: "Kehf, 18:58" },
-  { ar: "إِنَّ رَبَّكَ وَاسِعُ الرَّحْمَةِ",
-    tr: "Şüphesiz Rabbin rahmet sahibidir, rahmeti geniştir.",
-    ref: "En’am, 6:147" },
-  { ar: "وَمَن يَتَّقِ اللَّهَ يَجْعَل لَّهُ مَخْرَجًا",
-    tr: "Kim Allah’tan sakınırsa, O ona bir çıkış yolu verir.",
-    ref: "Talak, 65:2" },
-  { ar: "وَيَرْزُقْهُ مِنْ حَيْثُ لَا يَحْتَسِبُ",
-    tr: "Onu ummadığı yerden rızıklandırır.",
-    ref: "Talak, 65:3" },
-  { ar: "إِنَّ اللَّهَ لَطِيفٌ بِعِبَادِهِ",
-    tr: "Allah kullarına karşı lütuf sahibidir.",
-    ref: "Şura, 42:19" },
-  { ar: "فَاللَّهُ خَيْرٌ حَافِظًا",
-    tr: "Allah, en hayırlı koruyucudur.",
-    ref: "Yusuf, 12:64" },
-  { ar: "إِنَّ اللَّهَ مَعَنَا",
-    tr: "Şüphesiz Allah bizimle beraberdir.",
-    ref: "Tevbe, 9:40" },
-  { ar: "وَمَا الْحَيَاةُ الدُّنْيَا إِلَّا مَتَاعُ الْغُرُورِ",
-    tr: "Dünya hayatı aldatıcı bir metadan ibarettir.",
-    ref: "Al-i İmran, 3:185" },
-  { ar: "مَا عِندَ اللَّهِ خَيْرٌ وَأَبْقَى",
-    tr: "Allah katındaki daha hayırlı ve daha kalıcıdır.",
-    ref: "Kasas, 28:60" },
-  { ar: "وَاتَّقُواْ اللّهَ لَعَلَّكُمْ تُفْلِحُونَ",
-    tr: "Allah’tan sakının ki kurtuluşa eresiniz.",
-    ref: "Bakara, 2:189" },
-  { ar: "إِنَّ اللّهَ يُحِبُّ الْمُقْسِطِينَ",
-    tr: "Allah adaletli davrananları sever.",
-    ref: "Maide, 5:42" },
-  { ar: "اللَّهُ خَالِقُ كُلِّ شَيْءٍ",
-    tr: "Allah her şeyin yaratıcısıdır.",
-    ref: "Zümer, 39:62" },
-  { ar: "وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ",
-    tr: "O, her şeye güç yetirendir.",
-    ref: "Mülk, 67:1" },
-  { ar: "وَهُوَ عَلَى كُلِّ شَيْءٍ وَكِيلٌ",
-    tr: "O, her şeyin üzerinde vekildir.",
-    ref: "Şura, 42:6" },
-  { ar: "إِنَّهُ هُوَ السَّمِيعُ الْبَصِيرُ",
-    tr: "Şüphesiz O işitendir, görendir.",
-    ref: "İsra, 17:1" },
-  { ar: "إِنَّهُ بِكُلِّ شَيْءٍ عَلِيمٌ",
-    tr: "O her şeyi hakkıyla bilendir.",
-    ref: "Şura, 42:12" },
-  { ar: "وَهُوَ الْغَفُورُ الرَّحِيمُ",
-    tr: "O, çok bağışlayan, çok merhamet edendir.",
-    ref: "Yunus, 10:107" },
-  { ar: "وَمَا تَوْفِيقِي إِلَّا بِاللَّهِ",
-    tr: "Başarım yalnızca Allah’ın yardımı iledir.",
-    ref: "Hud, 11:88" },
-  { ar: "وَمَن يَغْفِرُ الذُّنُوبَ إِلَّا اللَّهُ",
-    tr: "Günahları Allah’tan başka kim bağışlayabilir?",
-    ref: "Al-i İmran, 3:135" },
-  { ar: "إِنَّ رَبِّي قَرِيبٌ مُّجِيبٌ",
-    tr: "Şüphesiz Rabbim yakındır, duaları kabul edendir.",
-    ref: "Hud, 11:61" },
-  { ar: "وَرَحْمَتِي وَسِعَتْ كُلَّ شَيْءٍ",
-    tr: "Rahmetim her şeyi kuşatmıştır.",
-    ref: "A’raf, 7:156" },
-  { ar: "إِنَّ اللَّهَ يُدَافِعُ عَنِ الَّذِينَ آمَنُوا",
-    tr: "Allah, iman edenleri savunur.",
-    ref: "Hac, 22:38" },
-  { ar: "سَلَامٌ قَوْلًا مِّن رَّبٍّ رَّحِيمٍ",
-    tr: "Onlara, çok merhametli Rab’den bir söz olarak 'Selâm' vardır.",
-    ref: "Yasin, 36:58" },
-  { ar: "إِنَّ الْأَبْرَارَ لَفِي نَعِيمٍ",
-    tr: "Şüphesiz iyiler nimet içindedir.",
-    ref: "İnfitâr, 82:13" },
-  { ar: "إِنَّ الْفُجَّارَ لَفِي جَحِيمٍ",
-    tr: "Şüphesiz günahkârlar cehennem içindedir.",
-    ref: "İnfitâr, 82:14" },
-  { ar: "وَأَنَّ إِلَى رَبِّكَ الْمُنتَهَى",
-    tr: "Son varış Rabbinedir.",
-    ref: "Necm, 53:42" }
+  { ar: "رَبِّ زِدْنِي عِلْمًا",
+    tr: "Rabbim, ilmimi artır.",
+    ref: "Taha, 20:114" },
+  { ar: "رَبِّ اشْرَحْ لِي صَدْرِي",
+    tr: "Rabbim, göğsümü genişlet.",
+    ref: "Taha, 20:25" },
+  { ar: "رَبَّنَا تَقَبَّلْ مِنَّا",
+    tr: "Rabbimiz, bizden (ibadetimizi) kabul eyle.",
+    ref: "Bakara, 2:127" },
+  { ar: "إِنَّ اللّهَ يُحِبُّ الْمُتَوَكِّلِينَ",
+    tr: "Allah tevekkül edenleri sever.",
+    ref: "Al-i İmran, 3:159" },
+  { ar: "إِنَّ اللّهَ يُحِبُّ الْمُحْسِنِينَ",
+    tr: "Allah iyilik yapanları sever.",
+    ref: "Bakara, 2:195" },
+  { ar: "إِنَّ اللّهَ يُحِبُّ الْتَّوَّابِينَ",
+    tr: "Allah çokça tevbe edenleri sever.",
+    ref: "Bakara, 2:222" },
+  { ar: "إِنَّ اللّهَ غَفُورٌ رَّحِيمٌ",
+    tr: "Şüphesiz Allah çok bağışlayandır, çok merhamet edendir.",
+    ref: "Bakara, 2:173" }
+  // → hier kannst du einfach in gleicher Form weitere Ayet anhängen
 ];
 
 let currentMode = "normal"; // "normal" oder "ramadan"
 let kerahatIntervalId = null;
 
 // Hilfsfunktionen
-
 function cleanTime(str) {
   return String(str).split(" ")[0];
 }
@@ -285,32 +153,18 @@ function pad2(n) {
   return String(n).toString().padStart(2, "0");
 }
 
-// YEAR-Daten laden + in localStorage cachen
+function toDateFromRow(row) {
+  return new Date(row.yearNum, row.monthNum - 1, row.dayNum);
+}
+
+function parseTimeOnDate(row, timeStr) {
+  const [hh, mm] = timeStr.split(":").map((v) => parseInt(v, 10));
+  return new Date(row.yearNum, row.monthNum - 1, row.dayNum, hh, mm, 0, 0);
+}
+
+// Jahr laden (ohne localStorage, nur im RAM)
 async function loadYearData(year) {
   if (prayerData[year]) return;
-
-  const storageKey = "velbert-prayer-" + year;
-
-  // aus localStorage lesen
-  try {
-    const cached = localStorage.getItem(storageKey);
-    if (cached) {
-      const parsed = JSON.parse(cached);
-      if (
-        parsed &&
-        Array.isArray(parsed.yearRows) &&
-        Array.isArray(parsed.ramadanRows)
-      ) {
-        prayerData[year] = {
-          year: parsed.yearRows,
-          ramadan: parsed.ramadanRows
-        };
-        return;
-      }
-    }
-  } catch (e) {
-    console.warn("localStorage read error", e);
-  }
 
   const yearRows = [];
   const ramadanRows = [];
@@ -335,29 +189,24 @@ async function loadYearData(year) {
 
     if (json.code !== 200 || !Array.isArray(json.data)) {
       console.error("API error", json);
-      throw new Error("Namaz vakti API hatası.");
+      throw new Error("Namaz vakti API hatası: " + json.status);
     }
 
-    json.data.forEach(function (dayObj) {
+    json.data.forEach((dayObj) => {
       const g = dayObj.date.gregorian;
       const h = dayObj.date.hijri;
       const t = dayObj.timings;
 
-      const parts = g.date.split("-");
-      const dayStr = parts[0];
-      const monthStr = parts[1];
-      const yearStr = parts[2];
-
+      const [dayStr, monthStr, yearStr] = g.date.split("-");
       const d = parseInt(dayStr, 10);
       const m = parseInt(monthStr, 10);
       const y = parseInt(yearStr, 10);
 
-      const dateStr = dayStr + "." + monthStr + "." + yearStr;
       const weekdayEn = g.weekday.en;
       const weekdayTr = weekdayMap[weekdayEn] || weekdayEn;
 
       const row = {
-        date: dateStr,
+        date: `${dayStr}.${monthStr}.${yearStr}`,
         day: weekdayTr,
         dayNum: d,
         monthNum: m,
@@ -368,30 +217,17 @@ async function loadYearData(year) {
         ikindi: cleanTime(t.Asr),
         aksam: cleanTime(t.Maghrib),
         yatsi: cleanTime(t.Isha),
-        isRamadan: h.month.number === 9
+        isRamadan: h.month.number === 9,
       };
 
       yearRows.push(row);
-      if (row.isRamadan) {
-        ramadanRows.push(row);
-      }
+      if (row.isRamadan) ramadanRows.push(row);
     });
   }
 
   prayerData[year] = { year: yearRows, ramadan: ramadanRows };
-
-  // im localStorage speichern
-  try {
-    localStorage.setItem(
-      storageKey,
-      JSON.stringify({ yearRows: yearRows, ramadanRows: ramadanRows })
-    );
-  } catch (e) {
-    console.warn("localStorage write error", e);
-  }
 }
 
-// Bereich [start, start+days) vorbereiten
 async function loadRangeData(startDate, days) {
   const start = new Date(startDate.getTime());
   start.setHours(0, 0, 0, 0);
@@ -412,14 +248,14 @@ async function loadRangeData(startDate, days) {
   for (let y = startYear; y <= endYear; y++) {
     const data = prayerData[y];
     if (!data) continue;
-    allRows.push.apply(allRows, data.year);
-    allRamadan.push.apply(allRamadan, data.ramadan);
+    allRows.push(...data.year);
+    allRamadan.push(...data.ramadan);
   }
 
-  return { start: start, end: end, rows: allRows, ramadanRows: allRamadan };
+  return { start, end, rows: allRows, ramadanRows: allRamadan };
 }
 
-// Uhr
+// UI-Funktionen
 
 function updateClock() {
   if (!nowDateEl || !nowTimeEl) return;
@@ -430,15 +266,12 @@ function updateClock() {
   const hh = pad2(now.getHours());
   const mm = pad2(now.getMinutes());
   const ss = pad2(now.getSeconds());
-
-  nowDateEl.textContent = d + "." + m + "." + y;
-  nowTimeEl.textContent = hh + ":" + mm + ":" + ss;
+  nowDateEl.textContent = `${d}.${m}.${y}`;
+  nowTimeEl.textContent = `${hh}:${mm}:${ss}`;
 }
 
-// Ayet
-
 function renderRandomAyah() {
-  if (!ayAr || !ayTr || !ayRef) return;
+  if (!ayAr || !ayTr || !ayRef || ayatList.length === 0) return;
   const idx = Math.floor(Math.random() * ayatList.length);
   const ay = ayatList[idx];
   ayAr.textContent = ay.ar;
@@ -446,26 +279,9 @@ function renderRandomAyah() {
   ayRef.textContent = ay.ref;
 }
 
-// Datum von Row
-
-function toDateFromRow(row) {
-  return new Date(row.yearNum, row.monthNum - 1, row.dayNum);
-}
-
-function parseTimeOnDate(row, timeStr) {
-  const parts = timeStr.split(":");
-  const hh = parseInt(parts[0], 10);
-  const mm = parseInt(parts[1], 10);
-  return new Date(row.yearNum, row.monthNum - 1, row.dayNum, hh, mm, 0, 0);
-}
-
-// aktive Gebetszeit markieren
-
 function updateActivePrayer(todayRow) {
-  const allBoxes = document.querySelectorAll(".today-item");
-  allBoxes.forEach(function (el) {
-    el.classList.remove("active-prayer");
-  });
+  const boxes = document.querySelectorAll(".today-item");
+  boxes.forEach((b) => b.classList.remove("active-prayer"));
 
   if (!todayRow) return;
 
@@ -475,20 +291,17 @@ function updateActivePrayer(todayRow) {
     { key: "ogle", el: todayOgleEl, time: todayRow.ogle },
     { key: "ikindi", el: todayIkindiEl, time: todayRow.ikindi },
     { key: "aksam", el: todayAksamEl, time: todayRow.aksam },
-    { key: "yatsi", el: todayYatsiEl, time: todayRow.yatsi }
+    { key: "yatsi", el: todayYatsiEl, time: todayRow.yatsi },
   ];
 
   const now = new Date();
-  const times = slots.map(function (s) {
-    return {
-      key: s.key,
-      el: s.el,
-      date: parseTimeOnDate(todayRow, s.time)
-    };
-  });
+  const times = slots.map((s) => ({
+    key: s.key,
+    el: s.el,
+    date: parseTimeOnDate(todayRow, s.time),
+  }));
 
   let activeKey = null;
-
   for (let i = 0; i < times.length; i++) {
     const cur = times[i];
     const next = times[i + 1];
@@ -500,16 +313,12 @@ function updateActivePrayer(todayRow) {
 
   if (!activeKey) return;
 
-  const activeSlot = slots.find(function (s) {
-    return s.key === activeKey;
-  });
+  const activeSlot = slots.find((s) => s.key === activeKey);
   if (activeSlot && activeSlot.el) {
     const box = activeSlot.el.closest(".today-item");
     if (box) box.classList.add("active-prayer");
   }
 }
-
-// Kerahat
 
 function updateKerahat(todayRow) {
   if (!kerahatStatusEl || !todayRow) return;
@@ -535,26 +344,12 @@ function updateKerahat(todayRow) {
   }
 }
 
-// Heute-Block
-
 function renderTodayBlock(todayRow) {
-  if (
-    !todayRow ||
-    !todayImsakEl ||
-    !todayGunesEl ||
-    !todayOgleEl ||
-    !todayIkindiEl ||
-    !todayAksamEl ||
-    !todayYatsiEl ||
-    !todayDateLabel
-  ) {
-    return;
-  }
+  if (!todayRow || !todayDateLabel) return;
 
   const d = pad2(todayRow.dayNum);
   const mName = monthNamesTr[todayRow.monthNum] || "";
-  todayDateLabel.textContent =
-    todayRow.day + " • " + d + " " + mName + " " + todayRow.yearNum;
+  todayDateLabel.textContent = `${todayRow.day} • ${d} ${mName} ${todayRow.yearNum}`;
 
   todayImsakEl.textContent = todayRow.imsak;
   todayGunesEl.textContent = todayRow.gunes;
@@ -567,39 +362,28 @@ function renderTodayBlock(todayRow) {
   updateActivePrayer(todayRow);
 }
 
-// Modus
-
 function setMode(newMode) {
   currentMode = newMode;
 
-  modeButtons.forEach(function (btn) {
-    if (btn.dataset.mode === newMode) {
-      btn.classList.add("active");
-    } else {
-      btn.classList.remove("active");
-    }
+  modeButtons.forEach((btn) => {
+    if (btn.dataset.mode === newMode) btn.classList.add("active");
+    else btn.classList.remove("active");
   });
 
   if (ramadanBanner) {
-    if (newMode === "ramadan") {
-      ramadanBanner.classList.add("visible");
-    } else {
-      ramadanBanner.classList.remove("visible");
-    }
+    if (newMode === "ramadan") ramadanBanner.classList.add("visible");
+    else ramadanBanner.classList.remove("visible");
   }
 
   if (tableCard) {
-    if (newMode === "ramadan") {
-      tableCard.classList.add("table-card-ramadan");
-    } else {
-      tableCard.classList.remove("table-card-ramadan");
-    }
+    if (newMode === "ramadan") tableCard.classList.add("table-card-ramadan");
+    else tableCard.classList.remove("table-card-ramadan");
   }
 
   if (tableHintEl) {
     if (newMode === "normal") {
       tableHintEl.innerHTML =
-        'Bugünden itibaren sonraki <strong>365 gün</strong> gösterilir.';
+        "Bugünden itibaren sonraki <strong>365 gün</strong> gösterilir.";
     } else {
       tableHintEl.textContent =
         "Bugünden itibaren 365 gün içinde Ramazan günleri gösterilir.";
@@ -609,8 +393,6 @@ function setMode(newMode) {
   renderTableAndToday();
 }
 
-// Haupt-Render (Tabelle + Heute)
-
 async function renderTableAndToday() {
   if (!tableBody || !tableTitle) return;
 
@@ -619,52 +401,42 @@ async function renderTableAndToday() {
 
   try {
     const rangeInfo = await loadRangeData(viewStartDate, 365);
-    const rangeStart = rangeInfo.start;
-    const rangeEnd = rangeInfo.end;
-    const allRows = rangeInfo.rows;
-    const allRamadanRows = rangeInfo.ramadanRows;
+    const { start, end, rows, ramadanRows } = rangeInfo;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const todayRow = allRows.find(function (row) {
-      const rd = toDateFromRow(row);
-      return rd.getTime() === today.getTime();
-    });
+    const todayRow = rows.find(
+      (row) => toDateFromRow(row).getTime() === today.getTime()
+    );
 
     if (todayRow) {
       renderTodayBlock(todayRow);
-      if (kerahatIntervalId) {
-        clearInterval(kerahatIntervalId);
-      }
-      kerahatIntervalId = setInterval(function () {
+
+      if (kerahatIntervalId) clearInterval(kerahatIntervalId);
+      kerahatIntervalId = setInterval(() => {
         updateKerahat(todayRow);
         updateActivePrayer(todayRow);
       }, 60000);
     }
 
     let rowsToShow = [];
-
     if (currentMode === "normal") {
-      rowsToShow = allRows
-        .filter(function (row) {
+      rowsToShow = rows
+        .filter((row) => {
           const d = toDateFromRow(row);
-          return d >= rangeStart && d <= rangeEnd;
+          return d >= start && d <= end;
         })
-        .sort(function (a, b) {
-          return toDateFromRow(a) - toDateFromRow(b);
-        });
+        .sort((a, b) => toDateFromRow(a) - toDateFromRow(b));
 
       tableTitle.textContent = "Velbert – Namaz Takvimi (365 Gün)";
     } else {
-      rowsToShow = allRamadanRows
-        .filter(function (row) {
+      rowsToShow = ramadanRows
+        .filter((row) => {
           const d = toDateFromRow(row);
-          return d >= rangeStart && d <= rangeEnd;
+          return d >= start && d <= end;
         })
-        .sort(function (a, b) {
-          return toDateFromRow(a) - toDateFromRow(b);
-        });
+        .sort((a, b) => toDateFromRow(a) - toDateFromRow(b));
 
       tableTitle.textContent =
         "Velbert – Ramazan Günleri (365 Günlük aralık içinde)";
@@ -680,33 +452,17 @@ async function renderTableAndToday() {
       return;
     }
 
-    rowsToShow.forEach(function (row) {
+    rowsToShow.forEach((row) => {
       const tr = document.createElement("tr");
       tr.innerHTML =
-        '<td class="date-cell">' +
-        row.date +
-        "</td>" +
-        '<td class="day-cell">' +
-        row.day +
-        "</td>" +
-        "<td>" +
-        row.imsak +
-        "</td>" +
-        "<td>" +
-        row.gunes +
-        "</td>" +
-        "<td>" +
-        row.ogle +
-        "</td>" +
-        "<td>" +
-        row.ikindi +
-        "</td>" +
-        "<td>" +
-        row.aksam +
-        "</td>" +
-        "<td>" +
-        row.yatsi +
-        "</td>";
+        `<td class="date-cell">${row.date}</td>` +
+        `<td class="day-cell">${row.day}</td>` +
+        `<td>${row.imsak}</td>` +
+        `<td>${row.gunes}</td>` +
+        `<td>${row.ogle}</td>` +
+        `<td>${row.ikindi}</td>` +
+        `<td>${row.aksam}</td>` +
+        `<td>${row.yatsi}</td>`;
       tableBody.appendChild(tr);
     });
   } catch (err) {
@@ -716,30 +472,25 @@ async function renderTableAndToday() {
   }
 }
 
-/* Event-Listener */
-
-modeButtons.forEach(function (btn) {
-  btn.addEventListener("click", function () {
-    const mode = btn.dataset.mode;
-    setMode(mode);
-  });
+// Event-Listener
+modeButtons.forEach((btn) => {
+  btn.addEventListener("click", () => setMode(btn.dataset.mode));
 });
 
 if (refreshBtn) {
-  refreshBtn.addEventListener("click", function () {
+  refreshBtn.addEventListener("click", () => {
     viewStartDate = new Date();
     renderTableAndToday();
   });
 }
 
 if (nextAyahBtn) {
-  nextAyahBtn.addEventListener("click", function () {
+  nextAyahBtn.addEventListener("click", () => {
     renderRandomAyah();
   });
 }
 
-/* Initialisierung */
-
+// Init
 renderRandomAyah();
 updateClock();
 setInterval(updateClock, 1000);
