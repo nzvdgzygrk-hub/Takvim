@@ -3,16 +3,21 @@ const COUNTRY = "Germany";
 // 13 = Turkish Diyanet
 const METHOD = 13;
 
-const prayerData = {};
+const CURRENT_YEAR = new Date().getFullYear();
 
-const yearButtons = document.querySelectorAll(".year-btn");
+const prayerData = {}; // { [year]: { year: [..] } }
+
 const modeButtons = document.querySelectorAll(".mode-btn");
 const tableBody = document.getElementById("times-body");
 const tableTitle = document.getElementById("table-title");
+const monthSelect = document.getElementById("month-select");
 
 const ayAr = document.getElementById("ayah-ar");
 const ayTr = document.getElementById("ayah-tr");
 const ayRef = document.getElementById("ayah-ref");
+
+const nowDateEl = document.getElementById("now-date");
+const nowTimeEl = document.getElementById("now-time");
 
 const weekdayMap = {
   Sunday: "Pazar",
@@ -22,6 +27,21 @@ const weekdayMap = {
   Thursday: "Perşembe",
   Friday: "Cuma",
   Saturday: "Cumartesi",
+};
+
+const monthNamesTr = {
+  1: "Ocak",
+  2: "Şubat",
+  3: "Mart",
+  4: "Nisan",
+  5: "Mayıs",
+  6: "Haziran",
+  7: "Temmuz",
+  8: "Ağustos",
+  9: "Eylül",
+  10: "Ekim",
+  11: "Kasım",
+  12: "Aralık",
 };
 
 const ayatList = [
@@ -42,14 +62,16 @@ const ayatList = [
   },
 ];
 
+let currentMode = "month"; // "month" oder "ramadan"
+let currentMonth = new Date().getMonth() + 1; // 1–12
+
 function cleanTime(str) {
   return String(str).split(" ")[0];
 }
 
-function setActiveButton(buttons, value, key) {
-  buttons.forEach((btn) => {
-    const v = btn.dataset[key];
-    if (String(v) === String(value)) {
+function setActiveMode(mode) {
+  modeButtons.forEach((btn) => {
+    if (btn.dataset.mode === mode) {
       btn.classList.add("active");
     } else {
       btn.classList.remove("active");
@@ -76,8 +98,8 @@ async function loadYearData(year) {
     const json = await res.json();
 
     if (json.code !== 200 || !Array.isArray(json.data)) {
-      console.error("API-Fehler", json);
-      throw new Error("Namaz vakti API hat ein Problem.");
+      console.error("API error", json);
+      throw new Error("Namaz vakti API hatası.");
     }
 
     json.data.forEach((dayObj) => {
@@ -85,14 +107,23 @@ async function loadYearData(year) {
       const h = dayObj.date.hijri;
       const t = dayObj.timings;
 
-      const dateStr = g.date.replace(/-/g, "."); // 01-03-2025 → 01.03.2025
+      const [dayStr, monthStr, yearStr] = g.date.split("-");
+      const d = parseInt(dayStr, 10);
+      const m = parseInt(monthStr, 10);
+      const y = parseInt(yearStr, 10);
+
+      const dateStr = `${dayStr}.${monthStr}.${yearStr}`;
       const weekdayEn = g.weekday.en;
       const weekdayTr = weekdayMap[weekdayEn] || weekdayEn;
 
       const row = {
         date: dateStr,
         day: weekdayTr,
+        dayNum: d,
+        monthNum: m,
+        yearNum: y,
         sabah: cleanTime(t.Fajr),
+        gunes: cleanTime(t.Sunrise),
         ogle: cleanTime(t.Dhuhr),
         ikindi: cleanTime(t.Asr),
         aksam: cleanTime(t.Maghrib),
@@ -113,34 +144,55 @@ async function loadYearData(year) {
   };
 }
 
-let currentYear = 2025;
-let currentMode = "year";
+function isInFutureOrToday(row, today) {
+  const rowDate = new Date(row.yearNum, row.monthNum - 1, row.dayNum);
+  return rowDate >= today;
+}
 
 async function renderTable() {
   tableBody.innerHTML =
-    '<tr><td colspan="7" style="padding:0.8rem;">Yükleniyor...</td></tr>';
+    '<tr><td colspan="8" style="padding:0.8rem;">Yükleniyor...</td></tr>';
 
   try {
-    await loadYearData(currentYear);
-    const yearData = prayerData[currentYear];
-    const rows = yearData[currentMode] || [];
+    await loadYearData(CURRENT_YEAR);
+    const yearData = prayerData[CURRENT_YEAR];
+    const allRows = yearData.year;
+    const ramadanRows = yearData.ramadan;
 
-    tableTitle.textContent =
-      currentYear +
-      " – " +
-      (currentMode === "year" ? "Tüm Yıl" : "Ramazan Günleri");
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let rowsToShow = [];
+
+    if (currentMode === "month") {
+      rowsToShow = allRows.filter((row) => {
+        if (row.monthNum !== currentMonth) return false;
+
+        // Nur aktuelle + zukünftige Tage zeigen
+        return isInFutureOrToday(row, today);
+      });
+
+      const monthName = monthNamesTr[currentMonth] || "";
+      tableTitle.textContent = `Velbert – ${monthName} ${CURRENT_YEAR} (bugünden itibaren)`;
+    } else {
+      // Ramazan-Modus
+      rowsToShow = ramadanRows.filter((row) =>
+        isInFutureOrToday(row, today)
+      );
+      tableTitle.textContent = `Velbert – Ramazan Günleri ${CURRENT_YEAR} (bugünden itibaren)`;
+    }
 
     tableBody.innerHTML = "";
 
-    if (rows.length === 0) {
+    if (rowsToShow.length === 0) {
       const tr = document.createElement("tr");
       tr.innerHTML =
-        '<td colspan="7" style="padding:0.8rem;">Bu mod için henüz veri yok.</td>';
+        '<td colspan="8" style="padding:0.8rem;">Gösterilecek gün bulunamadı (ya Ramazan başlamadı ya da yıl sonuna geldik).</td>';
       tableBody.appendChild(tr);
       return;
     }
 
-    rows.forEach((row) => {
+    rowsToShow.forEach((row) => {
       const tr = document.createElement("tr");
       if (row.isRamadan) {
         tr.classList.add("ramadan-row");
@@ -150,6 +202,7 @@ async function renderTable() {
         <td class="date-cell">${row.date}</td>
         <td class="day-cell">${row.day}</td>
         <td>${row.sabah}</td>
+        <td>${row.gunes}</td>
         <td>${row.ogle}</td>
         <td>${row.ikindi}</td>
         <td>${row.aksam}</td>
@@ -161,7 +214,7 @@ async function renderTable() {
   } catch (err) {
     console.error(err);
     tableBody.innerHTML =
-      '<tr><td colspan="7" style="padding:0.8rem;color:#fca5a5;">Namaz vakitleri alınırken bir hata oluştu. Lütfen sayfayı yenile veya daha sonra tekrar dene.</td></tr>';
+      '<tr><td colspan="8" style="padding:0.8rem;color:#fca5a5;">Namaz vakitleri alınırken bir hata oluştu. Lütfen sayfayı yenile veya daha sonra tekrar dene.</td></tr>';
   }
 }
 
@@ -173,23 +226,49 @@ function renderRandomAyah() {
   ayRef.textContent = ay.ref;
 }
 
-yearButtons.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const year = Number(btn.dataset.year);
-    currentYear = year;
-    setActiveButton(yearButtons, year, "year");
-    renderTable();
-  });
-});
+function pad2(n) {
+  return n.toString().padStart(2, "0");
+}
+
+function updateClock() {
+  const now = new Date();
+  const d = pad2(now.getDate());
+  const m = pad2(now.getMonth() + 1);
+  const y = now.getFullYear();
+  const hh = pad2(now.getHours());
+  const mm = pad2(now.getMinutes());
+  const ss = pad2(now.getSeconds());
+
+  nowDateEl.textContent = `${d}.${m}.${y}`;
+  nowTimeEl.textContent = `${hh}:${mm}:${ss}`;
+}
+
+/* Event-Listener */
 
 modeButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
     const mode = btn.dataset.mode;
     currentMode = mode;
-    setActiveButton(modeButtons, mode, "mode");
+    setActiveMode(mode);
     renderTable();
   });
 });
 
+monthSelect.addEventListener("change", () => {
+  currentMonth = Number(monthSelect.value);
+  if (currentMode !== "month") {
+    currentMode = "month";
+    setActiveMode("month");
+  }
+  renderTable();
+});
+
+/* Initialisierung */
+
+// aktuellen Monat im Select setzen
+monthSelect.value = String(currentMonth);
+
 renderRandomAyah();
+updateClock();
+setInterval(updateClock, 1000);
 renderTable();
