@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="utf-8" />
-  <title>Velbert Namaz & Ramazan Vakitleri 2025 / 2026</title>
+  <title>Velbert Namaz & Ramazan Vakitleri</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -11,33 +11,66 @@
     <div class="moon"></div>
     <div class="lantern lantern-left"></div>
     <div class="lantern lantern-right"></div>
+
+    <div class="floating-calligraphy allah">الله</div>
+    <div class="floating-calligraphy muhammad">محمد ﷺ</div>
   </div>
 
   <main class="container">
     <header class="header-card">
-      <div class="badge">Velbert • Diyanet / DİTİB Tarzı</div>
-      <h1>Namaz Vakitleri 2025 / 2026</h1>
-      <p class="subtitle">
-        Sabah • Öğle • İkindi • Akşam • Yatsı – Velbert, Almanya
-      </p>
-
-      <div class="year-toggle">
-        <button class="year-btn active" data-year="2025">2025</button>
-        <button class="year-btn" data-year="2026">2026</button>
+      <div class="top-line">
+        <div class="author">
+          Programmiert von <span class="author-name">F.Kaplan</span>
+        </div>
+        <div class="now">
+          <div id="now-date" class="now-date">–</div>
+          <div id="now-time" class="now-time">–</div>
+        </div>
       </div>
 
-      <div class="mode-toggle">
-        <button class="mode-btn active" data-mode="year">Tüm Yıl</button>
-        <button class="mode-btn" data-mode="ramadan">Ramazan</button>
+      <div class="title-block">
+        <h1>Velbert Namaz Vakitleri</h1>
+        <p class="subtitle">
+          Sabah • Güneş • Öğle • İkindi • Akşam • Yatsı
+        </p>
+      </div>
+
+      <div class="controls">
+        <div class="month-select-wrapper">
+          <label for="month-select">Ay seç:</label>
+          <select id="month-select">
+            <option value="1">Ocak</option>
+            <option value="2">Şubat</option>
+            <option value="3">Mart</option>
+            <option value="4">Nisan</option>
+            <option value="5">Mayıs</option>
+            <option value="6">Haziran</option>
+            <option value="7">Temmuz</option>
+            <option value="8">Ağustos</option>
+            <option value="9">Eylül</option>
+            <option value="10">Ekim</option>
+            <option value="11">Kasım</option>
+            <option value="12">Aralık</option>
+          </select>
+        </div>
+
+        <div class="mode-toggle">
+          <button class="mode-btn active" data-mode="month">
+            Aylık Namaz Takvimi
+          </button>
+          <button class="mode-btn" data-mode="ramadan">
+            Ramazan Günleri
+          </button>
+        </div>
       </div>
     </header>
 
     <section class="table-card">
       <div class="table-header">
-        <h2 id="table-title">2025 – Tüm Yıl (Örnek)</h2>
+        <h2 id="table-title">Velbert – Ay görünümü</h2>
         <p class="table-hint">
-          <strong>Not:</strong> Saatleri resmi DİTİB/Diyanet takviminden
-          alıp buraya ekle. Aşağıdaki yapı hazır.
+          Gösterilen vakitler <strong>bugünden itibaren</strong> başlar. Geçmiş
+          günler otomatik olarak gizlenir.
         </p>
       </div>
 
@@ -48,6 +81,7 @@
               <th>Tarih</th>
               <th>Gün</th>
               <th>Sabah</th>
+              <th>Güneş</th>
               <th>Öğle</th>
               <th>İkindi</th>
               <th>Akşam</th>
@@ -55,37 +89,38 @@
             </tr>
           </thead>
           <tbody id="times-body">
-            <!-- satırlar script.js ile dolduruluyor -->
+            <!-- JS füllt hier -->
           </tbody>
         </table>
-      </div>
-
-      <div class="source-note">
-        <p>
-          Tavsiye: Saatleri
-          <span class="highlight">Diyanet / DİTİB uyumlu</span>
-          takvimlerden al:
-        </p>
-        <ul>
-          <li>Resmî Ramazan imsakiyesi & namaz vakitleri (Diyanet / DİTİB)</li>
-          <li>Velbert için Diyanet tabanlı namaz vakti siteleri</li>
-        </ul>
       </div>
     </section>
 
     <section class="ramadan-info-card">
-      <h2>Ramazan Köşesi 🌙</h2>
-      <p class="ramadan-text">
-        Ramazan ayında sahur ve iftar vakitleri için
-        <strong>Sabah (imsak/fecir)</strong> ve
-        <strong>Akşam (iftar)</strong> saatlerine dikkat et.
-        Tabloda Ramazan günleri altın renkle vurgulanabilir.
-      </p>
-      <ul class="ramadan-tips">
-        <li>Ramazan günlerine <span class="pill pill-ramadan">Ramazan</span> etiketi ekle.</li>
-        <li>Sahur için birkaç dakika önce bırakmayı not olarak yaz.</li>
-        <li>İftar saatini aile ve arkadaşlarla paylaşmak için ideal.</li>
-      </ul>
+      <div class="ramadan-header">
+        <div class="mosque">
+          <div class="mosque-base"></div>
+          <div class="mosque-dome"></div>
+          <div class="mosque-minaret left"></div>
+          <div class="mosque-minaret right"></div>
+        </div>
+        <div class="ramadan-text-block">
+          <h2>Ramazan Köşesi 🌙</h2>
+          <p class="ramadan-text">
+            Ramazan modunda sadece <strong>birinci günden son güne</strong>
+            kadar olan Ramazan günleri gösterilir. Geçmiş günler saklanır.
+          </p>
+          <ul class="ramadan-tips">
+            <li>
+              <span class="pill pill-ramadan">Ramazan</span> satırları özel
+              olarak vurgulanır.
+            </li>
+            <li>
+              <strong>Sabah</strong> sahur/imsak için, <strong>Akşam</strong>
+              iftar için dikkate alınır.
+            </li>
+          </ul>
+        </div>
+      </div>
     </section>
 
     <section class="ayah-card">
@@ -97,8 +132,8 @@
 
     <footer class="footer">
       <p>
-        Bu sayfa sadece <strong>görsel ve pratik bir takvim</strong> içindir.
-        Resmî vakitler için mutlaka kendi caminin (DİTİB) takvimine bak.
+        Bu sayfa sadece <strong>pratik bir takvim</strong> sunar. Kesin vakitler
+        için her zaman kendi caminin duyurularını ve takvimini esas al.
       </p>
     </footer>
   </main>
