@@ -5,7 +5,7 @@ const METHOD = 13;
 
 const CURRENT_YEAR = new Date().getFullYear();
 
-const prayerData = {}; // { [year]: { year: [..] } }
+const prayerData = {}; // { [year]: { year:[..], ramadan:[..] } }
 
 const modeButtons = document.querySelectorAll(".mode-btn");
 const tableBody = document.getElementById("times-body");
@@ -62,7 +62,7 @@ const ayatList = [
   },
 ];
 
-let currentMode = "month"; // "month" oder "ramadan"
+let currentMode = "month";
 let currentMonth = new Date().getMonth() + 1; // 1–12
 
 function cleanTime(str) {
@@ -107,6 +107,7 @@ async function loadYearData(year) {
       const h = dayObj.date.hijri;
       const t = dayObj.timings;
 
+      // g.date: "DD-MM-YYYY"
       const [dayStr, monthStr, yearStr] = g.date.split("-");
       const d = parseInt(dayStr, 10);
       const m = parseInt(monthStr, 10);
@@ -150,6 +151,11 @@ function isInFutureOrToday(row, today) {
 }
 
 async function renderTable() {
+  if (!tableBody || !tableTitle || !monthSelect) {
+    console.warn("Elemente fehlen (tableBody/tableTitle/monthSelect).");
+    return;
+  }
+
   tableBody.innerHTML =
     '<tr><td colspan="8" style="padding:0.8rem;">Yükleniyor...</td></tr>';
 
@@ -167,15 +173,12 @@ async function renderTable() {
     if (currentMode === "month") {
       rowsToShow = allRows.filter((row) => {
         if (row.monthNum !== currentMonth) return false;
-
-        // Nur aktuelle + zukünftige Tage zeigen
         return isInFutureOrToday(row, today);
       });
 
       const monthName = monthNamesTr[currentMonth] || "";
       tableTitle.textContent = `Velbert – ${monthName} ${CURRENT_YEAR} (bugünden itibaren)`;
     } else {
-      // Ramazan-Modus
       rowsToShow = ramadanRows.filter((row) =>
         isInFutureOrToday(row, today)
       );
@@ -219,6 +222,7 @@ async function renderTable() {
 }
 
 function renderRandomAyah() {
+  if (!ayAr || !ayTr || !ayRef) return;
   const idx = Math.floor(Math.random() * ayatList.length);
   const ay = ayatList[idx];
   ayAr.textContent = ay.ar;
@@ -231,6 +235,7 @@ function pad2(n) {
 }
 
 function updateClock() {
+  if (!nowDateEl || !nowTimeEl) return;
   const now = new Date();
   const d = pad2(now.getDate());
   const m = pad2(now.getMonth() + 1);
@@ -254,19 +259,22 @@ modeButtons.forEach((btn) => {
   });
 });
 
-monthSelect.addEventListener("change", () => {
-  currentMonth = Number(monthSelect.value);
-  if (currentMode !== "month") {
-    currentMode = "month";
-    setActiveMode("month");
-  }
-  renderTable();
-});
+if (monthSelect) {
+  monthSelect.addEventListener("change", () => {
+    currentMonth = Number(monthSelect.value);
+    if (currentMode !== "month") {
+      currentMode = "month";
+      setActiveMode("month");
+    }
+    renderTable();
+  });
+}
 
 /* Initialisierung */
 
-// aktuellen Monat im Select setzen
-monthSelect.value = String(currentMonth);
+if (monthSelect) {
+  monthSelect.value = String(currentMonth);
+}
 
 renderRandomAyah();
 updateClock();
