@@ -2,9 +2,8 @@ const CITY = "Velbert";
 const COUNTRY = "Germany";
 const METHOD = 13; // Turkish Diyanet
 
-const NOW = new Date();
-const CURRENT_YEAR = NOW.getFullYear();
-const END_YEAR = 2030;
+// Startpunkt für die Ansicht (wird vom Button auf "heute" gesetzt)
+let viewStartDate = new Date();
 
 const prayerData = {}; // { [year]: { year:[..], ramadan:[..] } }
 
@@ -13,6 +12,7 @@ const tableTitle = document.getElementById("table-title");
 const tableHintEl = document.getElementById("table-hint");
 const ramadanBanner = document.getElementById("ramadan-banner");
 const modeButtons = document.querySelectorAll(".mode-btn");
+const refreshBtn = document.getElementById("refresh-btn");
 
 const ayAr = document.getElementById("ayah-ar");
 const ayTr = document.getElementById("ayah-tr");
@@ -56,14 +56,13 @@ const monthNamesTr = [
   "Aralık"
 ];
 
-// Mindestens 100 kurze Ayetler
+// Viele Ayet, aber für Anzeige nur die über Namaz verwenden
 const ayatList = [
   { ar: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا", tr: "Şüphesiz zorlukla beraber bir kolaylık vardır.", ref: "İnşirah, 94:6" },
   { ar: "إِنَّ مَعَ الْعُسْرِ يُسْرًا", tr: "Gerçekten güçlükle beraber bir kolaylık vardır.", ref: "İnşirah, 94:5" },
   { ar: "إِنَّ اللَّهَ مَعَ الصَّابِرِينَ", tr: "Şüphesiz Allah sabredenlerle beraberdir.", ref: "Bakara, 2:153" },
   { ar: "وَبَشِّرِ الصَّابِرِينَ", tr: "Sabredenleri müjdele.", ref: "Bakara, 2:155" },
   { ar: "ادْعُونِي أَسْتَجِبْ لَكُمْ", tr: "Bana dua edin, size cevap vereyim.", ref: "Mümin, 40:60" },
-  { ar: "وَقَالَ رَبُّكُمُ ادْعُونِي أَسْتَجِبْ لَكُمْ", tr: "Rabbiniz buyurdu: Bana dua edin, size icabet edeyim.", ref: "Mümin, 40:60" },
   { ar: "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ", tr: "Kalpler ancak Allah’ı zikretmekle huzur bulur.", ref: "Ra’d, 13:28" },
   { ar: "وَمَن يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ", tr: "Kim Allah’a tevekkül ederse, O ona yeter.", ref: "Talak, 65:3" },
   { ar: "لَا تَقْنَطُوا مِن رَّحْمَةِ اللَّهِ", tr: "Allah’ın rahmetinden ümidinizi kesmeyin.", ref: "Zümer, 39:53" },
@@ -72,75 +71,24 @@ const ayatList = [
   { ar: "وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ", tr: "Siz nerede olursanız olun O sizinle beraberdir.", ref: "Hadid, 57:4" },
   { ar: "وَعَسَى أَن تَكْرَهُوا شَيْئًا وَهُوَ خَيْرٌ لَّكُمْ", tr: "Hoşunuza gitmeyen bir şeyde sizin için hayır olabilir.", ref: "Bakara, 2:216" },
   { ar: "وَعَسَى أَن تُحِبُّوا شَيْئًا وَهُوَ شَرٌّ لَّكُمْ", tr: "Sevdiğiniz bir şey de sizin için şer olabilir.", ref: "Bakara, 2:216" },
-  { ar: "إِنَّ اللَّهَ غَفُورٌ رَّحِيمٌ", tr: "Şüphesiz Allah çok bağışlayandır, çok merhamet edendir.", ref: "Bakara, 2:173" },
-  { ar: "إِنَّ اللَّهَ يُحِبُّ الْمُتَوَكِّلِينَ", tr: "Allah tevekkül edenleri sever.", ref: "Al-i İmran, 3:159" },
-  { ar: "إِنَّ اللَّهَ يُحِبُّ الْمُحْسِنِينَ", tr: "Allah iyilik yapanları sever.", ref: "Bakara, 2:195" },
-  { ar: "إِنَّ اللَّهَ يُحِبُّ الْتَّوَّابِينَ", tr: "Allah çokça tevbe edenleri sever.", ref: "Bakara, 2:222" },
-  { ar: "إِنَّ اللَّهَ يُحِبُّ الْمُتَطَهِّرِينَ", tr: "Allah temizlenenleri sever.", ref: "Bakara, 2:222" },
-  { ar: "وَاللَّهُ يُحِبُّ الصَّابِرِينَ", tr: "Allah sabredenleri sever.", ref: "Al-i İmran, 3:146" },
-  { ar: "وَاللَّهُ سَمِيعٌ عَلِيمٌ", tr: "Allah işitendir, bilendir.", ref: "Bakara, 2:181" },
-  { ar: "وَاللَّهُ عَلَى كُلِّ شَيْءٍ قَدِيرٌ", tr: "Allah her şeye hakkıyla gücü yetendir.", ref: "Bakara, 2:20" },
-  { ar: "اللَّهُ نُورُ السَّمَاوَاتِ وَالْأَرْضِ", tr: "Allah göklerin ve yerin nurudur.", ref: "Nur, 24:35" },
-  { ar: "حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ", tr: "Allah bize yeter, O ne güzel vekildir.", ref: "Al-i İmran, 3:173" },
-  { ar: "رَّبِّ زِدْنِي عِلْمًا", tr: "Rabbim, ilmimi artır.", ref: "Taha, 20:114" },
-  { ar: "رَبِّ اشْرَحْ لِي صَدْرِي", tr: "Rabbim göğsümü genişlet.", ref: "Taha, 20:25" },
-  { ar: "رَبَّنَا ظَلَمْنَا أَنفُسَنَا", tr: "Rabbimiz, kendimize zulmettik.", ref: "A’raf, 7:23" },
-  { ar: "رَبَّنَا اغْفِرْ لَنَا ذُنُوبَنَا", tr: "Rabbimiz, günahlarımızı bağışla.", ref: "Al-i İmran, 3:16" },
-  { ar: "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً", tr: "Rabbimiz, bize dünyada iyilik ver.", ref: "Bakara, 2:201" },
-  { ar: "وَفِي الْآخِرَةِ حَسَنَةً", tr: "Ahirette de iyilik ver.", ref: "Bakara, 2:201" },
-  { ar: "رَبَّنَا تَقَبَّلْ مِنَّا", tr: "Rabbimiz, bizden (ibadetimizi) kabul buyur.", ref: "Bakara, 2:127" },
-  { ar: "رَبِّ اغْفِرْ وَارْحَمْ", tr: "Rabbim, bağışla ve merhamet et.", ref: "Müminun, 23:118" },
-  { ar: "فَاذْكُرُونِي أَذْكُرْكُمْ", tr: "Beni anın ki ben de sizi anayım.", ref: "Bakara, 2:152" },
-  { ar: "إِنَّ اللَّهَ لَا يُضِيعُ أَجْرَ الْمُحْسِنِينَ", tr: "Allah iyilik yapanların ecrini zayi etmez.", ref: "Tevbe, 9:120" },
-  { ar: "لَا خَوْفٌ عَلَيْهِمْ وَلَا هُمْ يَحْزَنُونَ", tr: "Onlara korku yoktur, onlar mahzun da olmayacaklardır.", ref: "Yunus, 10:62" },
-  { ar: "وَلَا تَيْأَسُوا مِن رَّوْحِ اللَّهِ", tr: "Allah’ın rahmetinden ümit kesmeyin.", ref: "Yusuf, 12:87" },
-  { ar: "إِنَّ أَكْرَمَكُمْ عِندَ اللَّهِ أَتْقَاكُمْ", tr: "Allah katında en değerliniz, en takvalı olanınızdır.", ref: "Hucurat, 49:13" },
-  { ar: "إِنَّ اللّهَ لاَ يُغَيِّرُ مَا بِقَوْمٍ", tr: "Allah, bir kavim kendini değiştirmedikçe durumlarını değiştirmez.", ref: "Ra’d, 13:11" },
-  { ar: "وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ", tr: "O, her şeye güç yetirendir.", ref: "Mülk, 67:1" },
-  { ar: "إِنَّ رَبِّي لَطِيفٌ لِّمَا يَشَاءُ", tr: "Rabbim dilediğine karşı latiftir.", ref: "Yusuf, 12:100" },
-  { ar: "إِنَّ رَبَّكَ لَغَفُورٌ رَّحِيمٌ", tr: "Şüphesiz Rabbin çok bağışlayandır, çok merhamet edendir.", ref: "Kehf, 18:58" },
-  { ar: "إِنَّ رَبَّكَ وَاسِعُ الرَّحْمَةِ", tr: "Şüphesiz Rabbin rahmeti geniştir.", ref: "En’am, 6:147" },
-  { ar: "وَاصْبِرْ وَمَا صَبْرُكَ إِلَّا بِاللَّهِ", tr: "Sabret! Senin sabrın ancak Allah iledir.", ref: "Nahl, 16:127" },
-  { ar: "فَاسْتَقِمْ كَمَا أُمِرْتَ", tr: "Emrolunduğun gibi dosdoğru ol.", ref: "Hud, 11:112" },
-  { ar: "وَمَا الْحَيَاةُ الدُّنْيَا إِلَّا مَتَاعُ الْغُرُورِ", tr: "Dünya hayatı aldatıcı bir metadan ibarettir.", ref: "Al-i İmran, 3:185" },
-  { ar: "مَا عِندَ اللَّهِ خَيْرٌ وَأَبْقَى", tr: "Allah katındaki daha hayırlı ve daha kalıcıdır.", ref: "Kasas, 28:60" },
-  { ar: "وَاتَّقُواْ اللّهَ لَعَلَّكُمْ تُفْلِحُونَ", tr: "Umulur ki kurtuluşa eresiniz diye Allah’tan sakının.", ref: "Bakara, 2:189" },
-  { ar: "وَتَوَكَّلْ عَلَى اللَّهِ وَكَفَى بِاللَّهِ وَكِيلًا", tr: "Allah’a tevekkül et; vekil olarak Allah yeter.", ref: "Ahzab, 33:3" },
-  { ar: "إِنَّ اللَّهَ يَرْزُقُ مَن يَشَاءُ بِغَيْرِ حِسَابٍ", tr: "Allah dilediğine hesapsız rızık verir.", ref: "Nur, 24:38" },
-  { ar: "وَرِزْقُ رَبِّكَ خَيْرٌ وَأَبْقَى", tr: "Rabbinin rızkı daha hayırlı ve daha kalıcıdır.", ref: "Taha, 20:131" },
-  { ar: "إِنَّ اللَّهَ كَانَ عَلَيْكُمْ رَقِيبًا", tr: "Şüphesiz Allah üzerinizde gözeticidir.", ref: "Nisa, 4:1" },
-  { ar: "نِعْمَ الْمَوْلَى وَنِعْمَ النَّصِيرُ", tr: "O ne güzel Mevlâ ve ne güzel yardımcıdır.", ref: "Enfal, 8:40" },
-  { ar: "وَأَنَّ إِلَى رَبِّكَ الْمُنتَهَى", tr: "Son varış Rabbinedir.", ref: "Necm, 53:42" },
-  { ar: "إِنَّهُ هُوَ السَّمِيعُ الْبَصِيرُ", tr: "Şüphesiz O işitendir, görendir.", ref: "İsra, 17:1" },
-  { ar: "إِنَّهُ بِكُلِّ شَيْءٍ عَلِيمٌ", tr: "O her şeyi hakkıyla bilendir.", ref: "Şura, 42:12" },
-  { ar: "وَهُوَ الْغَفُورُ الرَّحِيمُ", tr: "O, çok bağışlayan, çok merhamet edendir.", ref: "Yunus, 10:107" },
-  { ar: "وَمَا تَوْفِيقِي إِلَّا بِاللَّهِ", tr: "Başarım yalnızca Allah’ın yardımı iledir.", ref: "Hud, 11:88" },
-  { ar: "وَمَن يَغْفِرُ الذُّنُوبَ إِلَّا اللَّهُ", tr: "Günahları Allah’tan başka kim bağışlayabilir?", ref: "Al-i İmran, 3:135" },
-  { ar: "إِنَّ رَبِّي قَرِيبٌ مُّجِيبٌ", tr: "Şüphesiz Rabbim yakındır, duaları kabul edendir.", ref: "Hud, 11:61" },
-  { ar: "وَرَحْمَتِي وَسِعَتْ كُلَّ شَيْءٍ", tr: "Rahmetim her şeyi kuşatmıştır.", ref: "A’raf, 7:156" },
-  { ar: "إِنَّ اللَّهَ يُدَافِعُ عَنِ الَّذِينَ آمَنُوا", tr: "Allah, iman edenleri savunur.", ref: "Hac, 22:38" },
-  { ar: "وَمَن يَتَّقِ اللَّهَ يَجْعَل لَّهُ مَخْرَجًا", tr: "Kim Allah’tan sakınırsa, O ona bir çıkış yolu verir.", ref: "Talak, 65:2" },
-  { ar: "وَيَرْزُقْهُ مِنْ حَيْثُ لَا يَحْتَسِبُ", tr: "Onu ummadığı yerden rızıklandırır.", ref: "Talak, 65:3" },
-  { ar: "إِنَّ اللَّهَ لَطِيفٌ بِعِبَادِهِ", tr: "Şüphesiz Allah kullarına karşı lütuf sahibidir.", ref: "Şura, 42:19" },
-  { ar: "إِنَّ رَبَّكَ عَلَى صِرَاطٍ مُّسْتَقِيمٍ", tr: "Şüphesiz Rabbin dosdoğru bir yol üzerindedir.", ref: "Hud, 11:56" },
-  { ar: "فَاللَّهُ خَيْرٌ حَافِظًا", tr: "Allah en hayırlı koruyucudur.", ref: "Yusuf, 12:64" },
-  { ar: "إِنَّ اللَّهَ مَعَنَا", tr: "Şüphesiz Allah bizimle beraberdir.", ref: "Tevbe, 9:40" },
-  { ar: "وَاسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ", tr: "Sabır ve namazla yardım isteyin.", ref: "Bakara, 2:45" },
   { ar: "إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَّوْقُوتًا", tr: "Namaz, müminler üzerine vakitleri belirlenmiş bir farzdır.", ref: "Nisa, 4:103" },
   { ar: "وَأَقِمِ الصَّلَاةَ لِذِكْرِي", tr: "Beni anmak için namaz kıl.", ref: "Taha, 20:14" },
   { ar: "أَقِمِ الصَّلَاةَ إِنَّ الصَّلَاةَ تَنْهَىٰ عَنِ الْفَحْشَاءِ", tr: "Namazı kıl; çünkü namaz hayasızlıktan alıkoyar.", ref: "Ankebut, 29:45" },
   { ar: "يَا أَيُّهَا الَّذِينَ آمَنُوا اسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ", tr: "Ey iman edenler! Sabır ve namazla yardım isteyin.", ref: "Bakara, 2:153" },
+  { ar: "وَاسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ", tr: "Sabır ve namazla yardım isteyin.", ref: "Bakara, 2:45" },
   { ar: "إِنَّ اللّهَ يُحِبُّ الْمُقْسِطِينَ", tr: "Allah adaletli davrananları sever.", ref: "Maide, 5:42" },
-  { ar: "اللَّهُ خَالِقُ كُلِّ شَيْءٍ", tr: "Allah her şeyin yaratıcısıdır.", ref: "Zümer, 39:62" },
-  { ar: "وَهُوَ عَلَى كُلِّ شَيْءٍ وَكِيلٌ", tr: "O, her şeyin üzerinde vekildir.", ref: "Şura, 42:6" },
-  { ar: "وَهُوَ عَلَى كُلِّ شَيْءٍ شَهِيدٌ", tr: "O, her şeye şahittir.", ref: "Fussilet, 41:53" },
-  { ar: "إِنَّ رَبَّكَ لَبِالْمِرْصَادِ", tr: "Şüphesiz Rabbin gözetlemededir.", ref: "Fecr, 89:14" },
-  { ar: "إِنَّ الْأَبْرَارَ لَفِي نَعِيمٍ", tr: "Şüphesiz iyiler mutluluk içindedirler.", ref: "İnfitâr, 82:13" },
-  { ar: "إِنَّ الْفُجَّارَ لَفِي جَحِيمٍ", tr: "Şüphesiz günahkârlar cehennem içindedirler.", ref: "İnfitâr, 82:14" },
-  { ar: "سَلَامٌ قَوْلًا مِّن رَّبٍّ رَّحِيمٍ", tr: "Onlara çok merhametli Rabden bir söz olarak 'Selam' vardır.", ref: "Yasin, 36:58" },
-  { ar: "لَهُم مَّا يَشَاؤُونَ فِيهَا", tr: "Orada onların diledikleri her şey vardır.", ref: "Kaf, 50:35" },
-  { ar: "وَلَدَيْنَا مَزِيدٌ", tr: "Katımızda daha fazlası da vardır.", ref: "Kaf, 50:35" }
+  { ar: "اللَّهُ نُورُ السَّمَاوَاتِ وَالْأَرْضِ", tr: "Allah göklerin ve yerin nurudur.", ref: "Nur, 24:35" },
+  { ar: "حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ", tr: "Allah bize yeter, O ne güzel vekildir.", ref: "Al-i İmran, 3:173" },
+  { ar: "لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا", tr: "Allah kimseye gücünün yettiğinden fazlasını yüklemez.", ref: "Bakara, 2:286" }
+  // (Liste ist gekürzt, aber du kannst sie beliebig mit weiteren Ayet erweitern.)
 ];
+
+// Nur Ayet über Namaz für die Anzeige auswählen
+const prayerAyatList = ayatList.filter(function (a) {
+  return a.tr.toLowerCase().indexOf("namaz") !== -1 ||
+         a.tr.toLowerCase().indexOf("salat") !== -1 ||
+         a.ref.indexOf("Nisa, 4:103") !== -1;
+});
 
 let currentMode = "normal"; // "normal" oder "ramadan"
 let kerahatIntervalId = null;
@@ -215,10 +163,32 @@ async function loadYearData(year) {
   prayerData[year] = { year: yearRows, ramadan: ramadanRows };
 }
 
-async function loadAllYearsUpTo2030() {
-  for (let y = CURRENT_YEAR; y <= END_YEAR; y++) {
+// 365 Tage Bereich bestimmen und passende Jahre laden
+async function loadRangeData(startDate, days) {
+  const start = new Date(startDate.getTime());
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start.getTime());
+  end.setDate(end.getDate() + (days - 1));
+  end.setHours(0, 0, 0, 0);
+
+  const startYear = start.getFullYear();
+  const endYear = end.getFullYear();
+
+  for (let y = startYear; y <= endYear; y++) {
     await loadYearData(y);
   }
+
+  const allRows = [];
+  const allRamadan = [];
+
+  for (let y = startYear; y <= endYear; y++) {
+    const data = prayerData[y];
+    if (!data) continue;
+    allRows.push.apply(allRows, data.year);
+    allRamadan.push.apply(allRamadan, data.ramadan);
+  }
+
+  return { start: start, end: end, rows: allRows, ramadanRows: allRamadan };
 }
 
 function pad2(n) {
@@ -241,8 +211,9 @@ function updateClock() {
 
 function renderRandomAyah() {
   if (!ayAr || !ayTr || !ayRef) return;
-  const idx = Math.floor(Math.random() * ayatList.length);
-  const ay = ayatList[idx];
+  const list = prayerAyatList.length > 0 ? prayerAyatList : ayatList;
+  const idx = Math.floor(Math.random() * list.length);
+  const ay = list[idx];
   ayAr.textContent = ay.ar;
   ayTr.textContent = ay.tr;
   ayRef.textContent = ay.ref;
@@ -337,10 +308,10 @@ function setMode(newMode) {
   if (tableHintEl) {
     if (newMode === "normal") {
       tableHintEl.innerHTML =
-        'Bugünden itibaren <strong>2030 sonuna kadar</strong> tüm günler.';
+        'Bugünden itibaren sonraki <strong>365 gün</strong> gösterilir.';
     } else {
       tableHintEl.textContent =
-        "Bugünden itibaren Ramazan günleri (birinci günden son güne kadar) gösterilir.";
+        "Bugünden itibaren 365 gün içinde Ramazan günleri gösterilir.";
     }
   }
 
@@ -354,17 +325,11 @@ async function renderTableAndToday() {
     '<tr><td colspan="8" style="padding:0.8rem;">Yükleniyor...</td></tr>';
 
   try {
-    await loadAllYearsUpTo2030();
-
-    const allRows = [];
-    const allRamadanRows = [];
-
-    for (let y = CURRENT_YEAR; y <= END_YEAR; y++) {
-      const data = prayerData[y];
-      if (!data) continue;
-      allRows.push.apply(allRows, data.year);
-      allRamadanRows.push.apply(allRamadanRows, data.ramadan);
-    }
+    const rangeInfo = await loadRangeData(viewStartDate, 365);
+    const rangeStart = rangeInfo.start;
+    const rangeEnd = rangeInfo.end;
+    const allRows = rangeInfo.rows;
+    const allRamadanRows = rangeInfo.ramadanRows;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -389,25 +354,27 @@ async function renderTableAndToday() {
     if (currentMode === "normal") {
       rowsToShow = allRows
         .filter(function (row) {
-          return toDateFromRow(row) >= today;
+          const d = toDateFromRow(row);
+          return d >= rangeStart && d <= rangeEnd;
         })
         .sort(function (a, b) {
           return toDateFromRow(a) - toDateFromRow(b);
         });
 
       tableTitle.textContent =
-        "Velbert – Namaz Takvimi (Bugünden 2030 sonuna kadar)";
+        "Velbert – Namaz Takvimi (365 Gün)";
     } else {
       rowsToShow = allRamadanRows
         .filter(function (row) {
-          return toDateFromRow(row) >= today;
+          const d = toDateFromRow(row);
+          return d >= rangeStart && d <= rangeEnd;
         })
         .sort(function (a, b) {
           return toDateFromRow(a) - toDateFromRow(b);
         });
 
       tableTitle.textContent =
-        "Velbert – Ramazan Günleri (birinci günden son güne kadar)";
+        "Velbert – Ramazan Günleri (365 Günlük aralık içinde)";
     }
 
     tableBody.innerHTML = "";
@@ -436,7 +403,7 @@ async function renderTableAndToday() {
   } catch (err) {
     console.error(err);
     tableBody.innerHTML =
-      '<tr><td colspan="8" style="padding:0.8rem;color:#fca5a5;">Namaz vakitleri alınırken bir hata oluştu. Lütfen sayfayı yenile.</td></tr>';
+      '<tr><td colspan="8" style="padding:0.8rem;color:#fca5a5;">Namaz vakitleri alınırken bir hata oluştu. (CORS / ağ problemi olabilir.)</td></tr>';
   }
 }
 
@@ -450,9 +417,19 @@ for (let i = 0; i < modeButtons.length; i++) {
   });
 }
 
+if (refreshBtn) {
+  refreshBtn.addEventListener("click", function () {
+    // Startdatum auf "jetzt" setzen und 365 Tage neu laden
+    viewStartDate = new Date();
+    renderTableAndToday();
+  });
+}
+
 /* Initialisierung */
 
 renderRandomAyah();
 updateClock();
 setInterval(updateClock, 1000);
+
+// Beim ersten Laden auch direkt 365 Tage ab heute anzeigen
 renderTableAndToday();
