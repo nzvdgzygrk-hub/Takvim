@@ -150,7 +150,7 @@ body {
   font-size: 0.95rem;
 }
 
-/* HEUTE-KARTE */
+/* BUGÜNKÜ VAKİTLER */
 
 .today-card {
   background: var(--bg-card);
@@ -333,6 +333,67 @@ body {
   color: var(--text-muted);
 }
 
+/* Offset-Karte */
+
+.offset-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow-lg);
+  padding: 1.4rem 1.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.offset-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.offset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.offset-item label {
+  display: block;
+  font-size: 0.8rem;
+  margin-bottom: 0.2rem;
+}
+
+.offset-item input {
+  width: 100%;
+  padding: 0.3rem 0.45rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.8);
+  background: rgba(15, 23, 42, 0.8);
+  color: var(--text-main);
+}
+
+.offset-save-btn {
+  align-self: flex-start;
+  border-radius: 999px;
+  border: 1px solid rgba(59, 130, 246, 0.9);
+  background: rgba(37, 99, 235, 0.15);
+  color: #bfdbfe;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.18s ease-out;
+}
+
+.offset-save-btn:hover {
+  background: rgba(37, 99, 235, 0.3);
+  box-shadow: 0 0 14px rgba(37, 99, 235, 0.6);
+}
+
+.offset-saved {
+  font-size: 0.8rem;
+  color: #bbf7d0;
+}
+
 /* Tabelle + Modus + Refresh */
 
 .table-card {
@@ -511,7 +572,8 @@ body {
   .header-card,
   .today-card,
   .table-card,
-  .ayah-card {
+  .ayah-card,
+  .offset-card {
     padding: 1.25rem 1rem;
   }
 
@@ -544,5 +606,9 @@ body {
 
   .refresh-btn {
     align-self: flex-start;
+  }
+
+  .offset-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
