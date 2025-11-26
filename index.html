@@ -33,14 +33,6 @@
       </div>
     </header>
 
-    <!-- NAMAZ AYET – direkt sichtbar -->
-    <section class="ayah-card">
-      <h2>Kur’an’dan Bir Ayet (Namaz hakkında)</h2>
-      <p id="ayah-ar" class="ayah-ar"></p>
-      <p id="ayah-tr" class="ayah-tr"></p>
-      <p id="ayah-ref" class="ayah-ref"></p>
-    </section>
-
     <!-- HEUTIGE VAKITLER GROSS + Allah / Muhammed -->
     <section class="today-card">
       <div class="today-row">
@@ -81,7 +73,7 @@
           </div>
 
           <div class="today-extra">
-            <div id="kerahat-status" class="kerahat-status">Kerahat: –</div>
+            <div id="kerahat-status" class="kerahat-status"></div>
           </div>
         </div>
 
@@ -89,6 +81,19 @@
           <img src="muhammad.png" alt="Muhammed (s.a.v.)" />
         </div>
       </div>
+    </section>
+
+    <!-- AYET direkt unter Bugünkü Vakitler -->
+    <section class="ayah-card">
+      <div class="ayah-header">
+        <h2>Kur’an’dan Bir Ayet (Namaz hakkında)</h2>
+        <button id="next-ayah-btn" class="next-ayah-btn">
+          Başka bir ayet
+        </button>
+      </div>
+      <p id="ayah-ar" class="ayah-ar"></p>
+      <p id="ayah-tr" class="ayah-tr"></p>
+      <p id="ayah-ref" class="ayah-ref"></p>
     </section>
 
     <!-- TABELLE + MODUS + 365-Tage-Button -->
@@ -109,9 +114,11 @@
 
       <!-- Ramazan-Banner mit Bild -->
       <div id="ramadan-banner" class="ramadan-banner">
-        <img src="ramazan.jpg"
-             alt="Hoşgeldin Ya Şehr-i Ramazan"
-             class="ramadan-img" />
+        <img
+          src="ramazan.jpg"
+          alt="Hoşgeldin Ya Şehr-i Ramazan"
+          class="ramadan-img"
+        />
       </div>
 
       <div class="table-header">
