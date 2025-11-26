@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <title>Velbert Namaz & Ramazan Vakitleri 2025 / 2026</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="bg-decoration">
+    <div class="moon"></div>
+    <div class="lantern lantern-left"></div>
+    <div class="lantern lantern-right"></div>
+  </div>
+
+  <main class="container">
+    <header class="header-card">
+      <div class="badge">Velbert • Diyanet / DİTİB Tarzı</div>
+      <h1>Namaz Vakitleri 2025 / 2026</h1>
+      <p class="subtitle">
+        Sabah • Öğle • İkindi • Akşam • Yatsı – Velbert, Almanya
+      </p>
+
+      <div class="year-toggle">
+        <button class="year-btn active" data-year="2025">2025</button>
+        <button class="year-btn" data-year="2026">2026</button>
+      </div>
+
+      <div class="mode-toggle">
+        <button class="mode-btn active" data-mode="year">Tüm Yıl</button>
+        <button class="mode-btn" data-mode="ramadan">Ramazan</button>
+      </div>
+    </header>
+
+    <section class="table-card">
+      <div class="table-header">
+        <h2 id="table-title">2025 – Tüm Yıl (Örnek)</h2>
+        <p class="table-hint">
+          <strong>Not:</strong> Saatleri resmi DİTİB/Diyanet takviminden
+          alıp buraya ekle. Aşağıdaki yapı hazır.
+        </p>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Tarih</th>
+              <th>Gün</th>
+              <th>Sabah</th>
+              <th>Öğle</th>
+              <th>İkindi</th>
+              <th>Akşam</th>
+              <th>Yatsı</th>
+            </tr>
+          </thead>
+          <tbody id="times-body">
+            <!-- satırlar script.js ile dolduruluyor -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="source-note">
+        <p>
+          Tavsiye: Saatleri
+          <span class="highlight">Diyanet / DİTİB uyumlu</span>
+          takvimlerden al:
+        </p>
+        <ul>
+          <li>Resmî Ramazan imsakiyesi & namaz vakitleri (Diyanet / DİTİB)</li>
+          <li>Velbert için Diyanet tabanlı namaz vakti siteleri</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="ramadan-info-card">
+      <h2>Ramazan Köşesi 🌙</h2>
+      <p class="ramadan-text">
+        Ramazan ayında sahur ve iftar vakitleri için
+        <strong>Sabah (imsak/fecir)</strong> ve
+        <strong>Akşam (iftar)</strong> saatlerine dikkat et.
+        Tabloda Ramazan günleri altın renkle vurgulanabilir.
+      </p>
+      <ul class="ramadan-tips">
+        <li>Ramazan günlerine <span class="pill pill-ramadan">Ramazan</span> etiketi ekle.</li>
+        <li>Sahur için birkaç dakika önce bırakmayı not olarak yaz.</li>
+        <li>İftar saatini aile ve arkadaşlarla paylaşmak için ideal.</li>
+      </ul>
+    </section>
+
+    <section class="ayah-card">
+      <h2>Kur’an’dan Bir Ayet</h2>
+      <p id="ayah-ar" class="ayah-ar"></p>
+      <p id="ayah-tr" class="ayah-tr"></p>
+      <p id="ayah-ref" class="ayah-ref"></p>
+    </section>
+
+    <footer class="footer">
+      <p>
+        Bu sayfa sadece <strong>görsel ve pratik bir takvim</strong> içindir.
+        Resmî vakitler için mutlaka kendi caminin (DİTİB) takvimine bak.
+      </p>
+    </footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
