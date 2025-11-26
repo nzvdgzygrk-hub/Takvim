@@ -1,14 +1,10 @@
-// Stadt + Methode einstellen
 const CITY = "Velbert";
 const COUNTRY = "Germany";
-
-// 13 = Turkish Diyanet (Diyanet'e göre ayarlı) :contentReference[oaicite:1]{index=1}
+// 13 = Turkish Diyanet
 const METHOD = 13;
 
-// Cache für 2025 / 2026, damit nicht ständig neu geladen wird
-const prayerData = {}; // { 2025: { year: [...], ramadan: [...] }, 2026: {...} }
+const prayerData = {};
 
-// DOM-Elemente
 const yearButtons = document.querySelectorAll(".year-btn");
 const modeButtons = document.querySelectorAll(".mode-btn");
 const tableBody = document.getElementById("times-body");
@@ -18,7 +14,6 @@ const ayAr = document.getElementById("ayah-ar");
 const ayTr = document.getElementById("ayah-tr");
 const ayRef = document.getElementById("ayah-ref");
 
-// Türkische Wochentage
 const weekdayMap = {
   Sunday: "Pazar",
   Monday: "Pazartesi",
@@ -29,7 +24,6 @@ const weekdayMap = {
   Saturday: "Cumartesi",
 };
 
-// Kurze, beliebte Ayetler (Türkisch + Arabisch)
 const ayatList = [
   {
     ar: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا",
@@ -48,10 +42,7 @@ const ayatList = [
   },
 ];
 
-// Hilfsfunktionen
-
 function cleanTime(str) {
-  // Aladhan schickt oft z.B. "06:07 (CET)" – wir nehmen nur die Uhrzeit
   return String(str).split(" ")[0];
 }
 
@@ -66,9 +57,8 @@ function setActiveButton(buttons, value, key) {
   });
 }
 
-// Holt für ein Jahr alle Monate und baut year + ramadan Arrays
 async function loadYearData(year) {
-  if (prayerData[year]) return; // schon geladen
+  if (prayerData[year]) return;
 
   const yearRows = [];
   const ramadanRows = [];
@@ -102,11 +92,11 @@ async function loadYearData(year) {
       const row = {
         date: dateStr,
         day: weekdayTr,
-        sabah: cleanTime(t.Fajr), // Sabah namazı
-        ogle: cleanTime(t.Dhuhr), // Öğle
-        ikindi: cleanTime(t.Asr), // İkindi
-        aksam: cleanTime(t.Maghrib), // Akşam
-        yatsi: cleanTime(t.Isha), // Yatsı
+        sabah: cleanTime(t.Fajr),
+        ogle: cleanTime(t.Dhuhr),
+        ikindi: cleanTime(t.Asr),
+        aksam: cleanTime(t.Maghrib),
+        yatsi: cleanTime(t.Isha),
         isRamadan: h.month.number === 9,
       };
 
@@ -122,8 +112,6 @@ async function loadYearData(year) {
     ramadan: ramadanRows,
   };
 }
-
-// Tabelle rendern
 
 let currentYear = 2025;
 let currentMode = "year";
@@ -177,8 +165,6 @@ async function renderTable() {
   }
 }
 
-// Ayet anzeigen
-
 function renderRandomAyah() {
   const idx = Math.floor(Math.random() * ayatList.length);
   const ay = ayatList[idx];
@@ -186,8 +172,6 @@ function renderRandomAyah() {
   ayTr.textContent = ay.tr;
   ayRef.textContent = ay.ref;
 }
-
-// Event-Listener
 
 yearButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
@@ -206,8 +190,6 @@ modeButtons.forEach((btn) => {
     renderTable();
   });
 });
-
-// Initial
 
 renderRandomAyah();
 renderTable();
