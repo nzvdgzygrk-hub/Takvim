@@ -297,73 +297,22 @@ body {
 
 .ramadan-banner {
   display: none;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  padding: 0.75rem 0.9rem;
+  padding: 0.5rem;
   border-radius: 1rem;
-  background: radial-gradient(circle at top, #facc15, #7c2d12);
   border: 1px solid rgba(254, 243, 199, 0.9);
   box-shadow: 0 0 30px rgba(250, 204, 21, 0.5);
+  background: radial-gradient(circle at top, #020617, #000);
 }
 
 .ramadan-banner.visible {
-  display: flex;
+  display: block;
 }
 
-.ramadan-mosque {
-  position: relative;
-  width: 130px;
-  height: 70px;
-}
-
-.mosque-base {
-  position: absolute;
-  bottom: 0;
-  left: 10%;
-  width: 80%;
-  height: 32px;
-  background: rgba(23, 37, 84, 0.9);
-  border-radius: 12px 12px 0 0;
-  border: 1px solid rgba(30, 64, 175, 0.8);
-}
-
-.mosque-dome {
-  position: absolute;
-  bottom: 26px;
-  left: 27%;
-  width: 46%;
-  height: 32px;
-  background: radial-gradient(circle at 50% 20%, #fef9c3, #f59e0b);
-  border-radius: 50% 50% 40% 40%;
-  box-shadow: 0 0 18px rgba(250, 250, 210, 0.8);
-}
-
-.mosque-minaret {
-  position: absolute;
-  bottom: 0;
-  width: 7px;
-  height: 55px;
-  background: rgba(23, 37, 84, 0.95);
-  border-radius: 999px 999px 0 0;
-  border: 1px solid rgba(30, 64, 175, 0.8);
-}
-
-.mosque-minaret.left {
-  left: 5%;
-}
-
-.mosque-minaret.right {
-  right: 5%;
-}
-
-.ramadan-banner-text {
-  font-size: 1.1rem;
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  color: #fefce8;
-  text-transform: uppercase;
-  text-align: center;
+.ramadan-img {
+  width: 100%;
+  max-height: 260px;
+  object-fit: cover;
+  border-radius: 0.9rem;
 }
 
 /* Tabelle */
