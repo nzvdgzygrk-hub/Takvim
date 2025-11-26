@@ -107,13 +107,15 @@ body {
 }
 
 .author {
-  font-size: 1rem;
+  font-size: 1.05rem;
   color: var(--text-muted);
 }
 
 .author-name {
   color: var(--accent-strong);
-  font-weight: 700;
+  font-weight: 800;
+  font-size: 1.4rem; /* F.Kaplan größer */
+  letter-spacing: 0.05em;
 }
 
 .now {
@@ -146,6 +148,38 @@ body {
 .subtitle {
   color: var(--text-muted);
   font-size: 0.95rem;
+}
+
+/* AYET-Karte */
+
+.ayah-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow-lg);
+  padding: 1.4rem 1.3rem;
+}
+
+.ayah-card h2 {
+  font-size: 1.15rem;
+  margin-bottom: 0.6rem;
+}
+
+.ayah-ar {
+  font-size: 1.3rem;
+  direction: rtl;
+  text-align: right;
+  margin-bottom: 0.3rem;
+}
+
+.ayah-tr {
+  font-size: 0.95rem;
+  margin-bottom: 0.1rem;
+}
+
+.ayah-ref {
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }
 
 /* HEUTE-KARTE */
@@ -251,7 +285,7 @@ body {
   50% { opacity: 0.2; }
 }
 
-/* Tabelle + Modus */
+/* Tabelle + Modus + Refresh */
 
 .table-card {
   background: var(--bg-card);
@@ -266,7 +300,10 @@ body {
 
 .table-top {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .mode-toggle {
@@ -293,7 +330,25 @@ body {
   box-shadow: 0 0 18px rgba(250, 204, 21, 0.45);
 }
 
-/* Ramazan-Banner */
+.refresh-btn {
+  border-radius: 999px;
+  border: 1px solid rgba(52, 211, 153, 0.9);
+  background: rgba(22, 163, 74, 0.15);
+  color: #bbf7d0;
+  padding: 0.45rem 1.1rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.18s ease-out;
+}
+
+.refresh-btn:hover {
+  background: rgba(22, 163, 74, 0.3);
+  box-shadow: 0 0 16px rgba(22, 163, 74, 0.6);
+}
+
+/* Ramazan-Banner mit Bild */
 
 .ramadan-banner {
   display: none;
@@ -310,9 +365,11 @@ body {
 
 .ramadan-img {
   width: 100%;
+  height: auto;
   max-height: 260px;
-  object-fit: cover;
-  border-radius: 0.9rem;
+  object-fit: contain; /* ganze Moschee sichtbar, nicht abgeschnitten */
+  display: block;
+  margin: 0 auto;
 }
 
 /* Tabelle */
@@ -380,38 +437,6 @@ body {
   color: var(--text-muted);
 }
 
-/* Ayet-Karte */
-
-.ayah-card {
-  background: var(--bg-card);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-soft);
-  box-shadow: var(--shadow-lg);
-  padding: 1.4rem 1.3rem;
-}
-
-.ayah-card h2 {
-  font-size: 1.15rem;
-  margin-bottom: 0.6rem;
-}
-
-.ayah-ar {
-  font-size: 1.3rem;
-  direction: rtl;
-  text-align: right;
-  margin-bottom: 0.3rem;
-}
-
-.ayah-tr {
-  font-size: 0.95rem;
-  margin-bottom: 0.1rem;
-}
-
-.ayah-ref {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
 /* Footer */
 
 .footer {
@@ -451,5 +476,14 @@ body {
 
   .table-wrapper {
     max-height: 55vh;
+  }
+
+  .table-top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .refresh-btn {
+    align-self: flex-start;
   }
 }
