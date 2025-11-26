@@ -272,4 +272,276 @@ function updateActivePrayer(todayRow) {
 
   const slots = [
     { key: "imsak", el: todayImsakEl, time: todayRow.imsak },
-    { key: "gunes", el: todayGunesEl,
+    { key: "gunes", el: todayGunesEl, time: todayRow.gunes },
+    { key: "ogle", el: todayOgleEl, time: todayRow.ogle },
+    { key: "ikindi", el: todayIkindiEl, time: todayRow.ikindi },
+    { key: "aksam", el: todayAksamEl, time: todayRow.aksam },
+    { key: "yatsi", el: todayYatsiEl, time: todayRow.yatsi }
+  ];
+
+  const now = new Date();
+  const times = slots.map(function (s) {
+    return {
+      key: s.key,
+      el: s.el,
+      date: parseTimeOnDate(todayRow, s.time)
+    };
+  });
+
+  let activeKey = null;
+
+  for (let i = 0; i < times.length; i++) {
+    const cur = times[i];
+    const next = times[i + 1];
+    if (now >= cur.date && (!next || now < next.date)) {
+      activeKey = cur.key;
+      break;
+    }
+  }
+
+  if (!activeKey) return;
+
+  const activeSlot = slots.find(function (s) {
+    return s.key === activeKey;
+  });
+  if (activeSlot && activeSlot.el) {
+    const box = activeSlot.el.closest(".today-item");
+    if (box) box.classList.add("active-prayer");
+  }
+}
+
+// Kerahat
+
+function updateKerahat(todayRow) {
+  if (!kerahatStatusEl || !todayRow) return;
+
+  kerahatStatusEl.classList.remove("kerahat-active", "kerahat-visible");
+  kerahatStatusEl.textContent = "";
+
+  try {
+    const now = new Date();
+    const ikindiTime = parseTimeOnDate(todayRow, todayRow.ikindi);
+    const aksamTime = parseTimeOnDate(todayRow, todayRow.aksam);
+
+    if (now >= ikindiTime && now < aksamTime) {
+      const diffMin = (aksamTime - now) / (1000 * 60);
+      if (diffMin <= 45) {
+        kerahatStatusEl.textContent =
+          "Kerahat vakti: İkindi ile Akşam arası son 45 dakika.";
+        kerahatStatusEl.classList.add("kerahat-active", "kerahat-visible");
+      }
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+// Heute-Block
+
+function renderTodayBlock(todayRow) {
+  if (
+    !todayRow ||
+    !todayImsakEl ||
+    !todayGunesEl ||
+    !todayOgleEl ||
+    !todayIkindiEl ||
+    !todayAksamEl ||
+    !todayYatsiEl ||
+    !todayDateLabel
+  ) {
+    return;
+  }
+
+  const d = pad2(todayRow.dayNum);
+  const mName = monthNamesTr[todayRow.monthNum] || "";
+  todayDateLabel.textContent =
+    todayRow.day + " • " + d + " " + mName + " " + todayRow.yearNum;
+
+  todayImsakEl.textContent = todayRow.imsak;
+  todayGunesEl.textContent = todayRow.gunes;
+  todayOgleEl.textContent = todayRow.ogle;
+  todayIkindiEl.textContent = todayRow.ikindi;
+  todayAksamEl.textContent = todayRow.aksam;
+  todayYatsiEl.textContent = todayRow.yatsi;
+
+  updateKerahat(todayRow);
+  updateActivePrayer(todayRow);
+}
+
+// Modus
+
+function setMode(newMode) {
+  currentMode = newMode;
+
+  modeButtons.forEach(function (btn) {
+    if (btn.dataset.mode === newMode) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+    }
+  });
+
+  if (ramadanBanner) {
+    if (newMode === "ramadan") {
+      ramadanBanner.classList.add("visible");
+    } else {
+      ramadanBanner.classList.remove("visible");
+    }
+  }
+
+  if (tableCard) {
+    if (newMode === "ramadan") {
+      tableCard.classList.add("table-card-ramadan");
+    } else {
+      tableCard.classList.remove("table-card-ramadan");
+    }
+  }
+
+  if (tableHintEl) {
+    if (newMode === "normal") {
+      tableHintEl.innerHTML =
+        'Bugünden itibaren sonraki <strong>365 gün</strong> gösterilir.';
+    } else {
+      tableHintEl.textContent =
+        "Bugünden itibaren 365 gün içinde Ramazan günleri gösterilir.";
+    }
+  }
+
+  renderTableAndToday();
+}
+
+// Haupt-Render (Tabelle + Heute)
+
+async function renderTableAndToday() {
+  if (!tableBody || !tableTitle) return;
+
+  tableBody.innerHTML =
+    '<tr><td colspan="8" style="padding:0.8rem;">Yükleniyor...</td></tr>';
+
+  try {
+    const rangeInfo = await loadRangeData(viewStartDate, 365);
+    const rangeStart = rangeInfo.start;
+    const rangeEnd = rangeInfo.end;
+    const allRows = rangeInfo.rows;
+    const allRamadanRows = rangeInfo.ramadanRows;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const todayRow = allRows.find(function (row) {
+      const rd = toDateFromRow(row);
+      return rd.getTime() === today.getTime();
+    });
+
+    if (todayRow) {
+      renderTodayBlock(todayRow);
+      if (kerahatIntervalId) {
+        clearInterval(kerahatIntervalId);
+      }
+      kerahatIntervalId = setInterval(function () {
+        updateKerahat(todayRow);
+        updateActivePrayer(todayRow);
+      }, 60000);
+    }
+
+    let rowsToShow = [];
+
+    if (currentMode === "normal") {
+      rowsToShow = allRows
+        .filter(function (row) {
+          const d = toDateFromRow(row);
+          return d >= rangeStart && d <= rangeEnd;
+        })
+        .sort(function (a, b) {
+          return toDateFromRow(a) - toDateFromRow(b);
+        });
+
+      tableTitle.textContent = "Velbert – Namaz Takvimi (365 Gün)";
+    } else {
+      rowsToShow = allRamadanRows
+        .filter(function (row) {
+          const d = toDateFromRow(row);
+          return d >= rangeStart && d <= rangeEnd;
+        })
+        .sort(function (a, b) {
+          return toDateFromRow(a) - toDateFromRow(b);
+        });
+
+      tableTitle.textContent =
+        "Velbert – Ramazan Günleri (365 Günlük aralık içinde)";
+    }
+
+    tableBody.innerHTML = "";
+
+    if (rowsToShow.length === 0) {
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        '<td colspan="8" style="padding:0.8rem;">Gösterilecek gün bulunamadı.</td>';
+      tableBody.appendChild(tr);
+      return;
+    }
+
+    rowsToShow.forEach(function (row) {
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        '<td class="date-cell">' +
+        row.date +
+        "</td>" +
+        '<td class="day-cell">' +
+        row.day +
+        "</td>" +
+        "<td>" +
+        row.imsak +
+        "</td>" +
+        "<td>" +
+        row.gunes +
+        "</td>" +
+        "<td>" +
+        row.ogle +
+        "</td>" +
+        "<td>" +
+        row.ikindi +
+        "</td>" +
+        "<td>" +
+        row.aksam +
+        "</td>" +
+        "<td>" +
+        row.yatsi +
+        "</td>";
+      tableBody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error(err);
+    tableBody.innerHTML =
+      '<tr><td colspan="8" style="padding:0.8rem;color:#fca5a5;">Namaz vakitleri alınırken bir hata oluştu. (CORS / ağ problemi olabilir.)</td></tr>';
+  }
+}
+
+/* Event-Listener */
+
+modeButtons.forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    const mode = btn.dataset.mode;
+    setMode(mode);
+  });
+});
+
+if (refreshBtn) {
+  refreshBtn.addEventListener("click", function () {
+    viewStartDate = new Date();
+    renderTableAndToday();
+  });
+}
+
+if (nextAyahBtn) {
+  nextAyahBtn.addEventListener("click", function () {
+    renderRandomAyah();
+  });
+}
+
+/* Initialisierung */
+
+renderRandomAyah();
+updateClock();
+setInterval(updateClock, 1000);
+renderTableAndToday();
