@@ -33,6 +33,14 @@
       </div>
     </header>
 
+    <!-- NAMAZ AYET – direkt sichtbar -->
+    <section class="ayah-card">
+      <h2>Kur’an’dan Bir Ayet (Namaz hakkında)</h2>
+      <p id="ayah-ar" class="ayah-ar"></p>
+      <p id="ayah-tr" class="ayah-tr"></p>
+      <p id="ayah-ref" class="ayah-ref"></p>
+    </section>
+
     <!-- HEUTIGE VAKITLER GROSS + Allah / Muhammed -->
     <section class="today-card">
       <div class="today-row">
@@ -83,7 +91,7 @@
       </div>
     </section>
 
-    <!-- TABELLE + MODUS -->
+    <!-- TABELLE + MODUS + 365-Tage-Button -->
     <section class="table-card">
       <div class="table-top">
         <div class="mode-toggle">
@@ -94,20 +102,22 @@
             Ramazan Günleri
           </button>
         </div>
+        <button id="refresh-btn" class="refresh-btn">
+          365 Günü Güncelle
+        </button>
       </div>
 
-      <!-- Ramazan-Banner -->
-     <div id="ramadan-banner" class="ramadan-banner">
-  <img src="ramazan.jpg"
-       alt="Hoşgeldin Ya Şehr-i Ramazan"
-       class="ramadan-img" />
-</div>
-
+      <!-- Ramazan-Banner mit Bild -->
+      <div id="ramadan-banner" class="ramadan-banner">
+        <img src="ramazan.jpg"
+             alt="Hoşgeldin Ya Şehr-i Ramazan"
+             class="ramadan-img" />
+      </div>
 
       <div class="table-header">
-        <h2 id="table-title">Velbert – Namaz Takvimi (Bugünden 2030’a kadar)</h2>
+        <h2 id="table-title">Velbert – Namaz Takvimi (365 Gün)</h2>
         <p id="table-hint" class="table-hint">
-          Bugünden itibaren <strong>2030 sonuna kadar</strong> tüm günler.
+          Bugünden itibaren sonraki <strong>365 gün</strong> gösterilir.
         </p>
       </div>
 
@@ -130,13 +140,6 @@
           </tbody>
         </table>
       </div>
-    </section>
-
-    <section class="ayah-card">
-      <h2>Kur’an’dan Bir Ayet</h2>
-      <p id="ayah-ar" class="ayah-ar"></p>
-      <p id="ayah-tr" class="ayah-tr"></p>
-      <p id="ayah-ref" class="ayah-ref"></p>
     </section>
 
     <footer class="footer">
