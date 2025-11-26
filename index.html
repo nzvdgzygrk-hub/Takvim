@@ -12,8 +12,13 @@
     <div class="lantern lantern-left"></div>
     <div class="lantern lantern-right"></div>
 
-    <div class="floating-calligraphy allah">الله</div>
-    <div class="floating-calligraphy muhammad">محمد ﷺ</div>
+    <!-- Allah & Muhammed Bilder links / rechts -->
+    <div class="bg-icon bg-icon-allah">
+      <img src="allah.png" alt="Allah" />
+    </div>
+    <div class="bg-icon bg-icon-muhammad">
+      <img src="muhammad.png" alt="Muhammed (s.a.v.)" />
+    </div>
   </div>
 
   <main class="container">
@@ -74,11 +79,35 @@
       </div>
     </section>
 
-    <!-- 31 TAGE AB HEUTE -->
+    <!-- 31 TAGE / RAMAZAN-Umschalter -->
     <section class="table-card">
+      <div class="table-top">
+        <div class="mode-toggle">
+          <button class="mode-btn active" data-mode="normal">
+            Namaz Takvimi
+          </button>
+          <button class="mode-btn" data-mode="ramadan">
+            Ramazan Günleri
+          </button>
+        </div>
+      </div>
+
+      <!-- Ramazan-Banner wie auf dem Bild -->
+      <div id="ramadan-banner" class="ramadan-banner">
+        <div class="ramadan-mosque">
+          <div class="mosque-base"></div>
+          <div class="mosque-dome"></div>
+          <div class="mosque-minaret left"></div>
+          <div class="mosque-minaret right"></div>
+        </div>
+        <div class="ramadan-banner-text">
+          HOŞGELDİN YA ŞEHR-İ RAMAZAN
+        </div>
+      </div>
+
       <div class="table-header">
         <h2 id="table-title">Velbert – Namaz Takvimi (31 Gün)</h2>
-        <p class="table-hint">
+        <p id="table-hint" class="table-hint">
           Bugünden itibaren sonraki <strong>31 gün</strong> için vakitler.
         </p>
       </div>
