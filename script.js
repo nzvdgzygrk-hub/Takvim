@@ -1,9 +1,11 @@
-const API_BASE = "https://orange-sunset-ee02.5wyxcfngx6.workers.dev";
 const CITY = "Velbert";
 const COUNTRY = "Germany";
 const METHOD = 13; // Turkish Diyanet
 
-// Startpunkt für die Ansicht (wird vom Button auf "heute" gesetzt)
+// dein Cloudflare-Worker
+const API_BASE = "https://orange-sunset-ee02.5wyxcfngx6.workers.dev";
+
+// Startpunkt für die Ansicht (365 Tage ab diesem Datum)
 let viewStartDate = new Date();
 
 const prayerData = {}; // { [year]: { year:[..], ramadan:[..] } }
@@ -14,10 +16,12 @@ const tableHintEl = document.getElementById("table-hint");
 const ramadanBanner = document.getElementById("ramadan-banner");
 const modeButtons = document.querySelectorAll(".mode-btn");
 const refreshBtn = document.getElementById("refresh-btn");
+const tableCard = document.querySelector(".table-card");
 
 const ayAr = document.getElementById("ayah-ar");
 const ayTr = document.getElementById("ayah-tr");
 const ayRef = document.getElementById("ayah-ref");
+const nextAyahBtn = document.getElementById("next-ayah-btn");
 
 const nowDateEl = document.getElementById("now-date");
 const nowTimeEl = document.getElementById("now-time");
@@ -57,61 +61,75 @@ const monthNamesTr = [
   "Aralık"
 ];
 
-// Viele Ayet, aber für Anzeige nur die über Namaz verwenden
+// Ayet-Liste (gekürzt, Fokus auf Namaz)
 const ayatList = [
-  { ar: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا", tr: "Şüphesiz zorlukla beraber bir kolaylık vardır.", ref: "İnşirah, 94:6" },
-  { ar: "إِنَّ مَعَ الْعُسْرِ يُسْرًا", tr: "Gerçekten güçlükle beraber bir kolaylık vardır.", ref: "İnşirah, 94:5" },
-  { ar: "إِنَّ اللَّهَ مَعَ الصَّابِرِينَ", tr: "Şüphesiz Allah sabredenlerle beraberdir.", ref: "Bakara, 2:153" },
-  { ar: "وَبَشِّرِ الصَّابِرِينَ", tr: "Sabredenleri müjdele.", ref: "Bakara, 2:155" },
-  { ar: "ادْعُونِي أَسْتَجِبْ لَكُمْ", tr: "Bana dua edin, size cevap vereyim.", ref: "Mümin, 40:60" },
-  { ar: "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ", tr: "Kalpler ancak Allah’ı zikretmekle huzur bulur.", ref: "Ra’d, 13:28" },
-  { ar: "وَمَن يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ", tr: "Kim Allah’a tevekkül ederse, O ona yeter.", ref: "Talak, 65:3" },
-  { ar: "لَا تَقْنَطُوا مِن رَّحْمَةِ اللَّهِ", tr: "Allah’ın rahmetinden ümidinizi kesmeyin.", ref: "Zümer, 39:53" },
-  { ar: "إِنَّ رَحْمَتَ اللَّهِ قَرِيبٌ مِّنَ الْمُحْسِنِينَ", tr: "Allah’ın rahmeti iyilik yapanlara yakındır.", ref: "A’raf, 7:56" },
-  { ar: "نَحْنُ أَقْرَبُ إِلَيْهِ مِنْ حَبْلِ الْوَرِيدِ", tr: "Biz insana şah damarından daha yakınız.", ref: "Kaf, 50:16" },
-  { ar: "وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ", tr: "Siz nerede olursanız olun O sizinle beraberdir.", ref: "Hadid, 57:4" },
-  { ar: "وَعَسَى أَن تَكْرَهُوا شَيْئًا وَهُوَ خَيْرٌ لَّكُمْ", tr: "Hoşunuza gitmeyen bir şeyde sizin için hayır olabilir.", ref: "Bakara, 2:216" },
-  { ar: "وَعَسَى أَن تُحِبُّوا شَيْئًا وَهُوَ شَرٌّ لَّكُمْ", tr: "Sevdiğiniz bir şey de sizin için şer olabilir.", ref: "Bakara, 2:216" },
   { ar: "إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَّوْقُوتًا", tr: "Namaz, müminler üzerine vakitleri belirlenmiş bir farzdır.", ref: "Nisa, 4:103" },
   { ar: "وَأَقِمِ الصَّلَاةَ لِذِكْرِي", tr: "Beni anmak için namaz kıl.", ref: "Taha, 20:14" },
   { ar: "أَقِمِ الصَّلَاةَ إِنَّ الصَّلَاةَ تَنْهَىٰ عَنِ الْفَحْشَاءِ", tr: "Namazı kıl; çünkü namaz hayasızlıktan alıkoyar.", ref: "Ankebut, 29:45" },
-  { ar: "يَا أَيُّهَا الَّذِينَ آمَنُوا اسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ", tr: "Ey iman edenler! Sabır ve namazla yardım isteyin.", ref: "Bakara, 2:153" },
   { ar: "وَاسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ", tr: "Sabır ve namazla yardım isteyin.", ref: "Bakara, 2:45" },
-  { ar: "إِنَّ اللّهَ يُحِبُّ الْمُقْسِطِينَ", tr: "Allah adaletli davrananları sever.", ref: "Maide, 5:42" },
-  { ar: "اللَّهُ نُورُ السَّمَاوَاتِ وَالْأَرْضِ", tr: "Allah göklerin ve yerin nurudur.", ref: "Nur, 24:35" },
-  { ar: "حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ", tr: "Allah bize yeter, O ne güzel vekildir.", ref: "Al-i İmran, 3:173" },
-  { ar: "لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا", tr: "Allah kimseye gücünün yettiğinden fazlasını yüklemez.", ref: "Bakara, 2:286" }
-  // (Liste ist gekürzt, aber du kannst sie beliebig mit weiteren Ayet erweitern.)
+  { ar: "يَا أَيُّهَا الَّذِينَ آمَنُوا اسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ", tr: "Ey iman edenler! Sabır ve namazla yardım isteyin.", ref: "Bakara, 2:153" },
+  { ar: "حَافِظُوا عَلَى الصَّلَوَاتِ وَالصَّلَاةِ الْوُسْطَىٰ", tr: "Namazlara ve orta namaza devam edin.", ref: "Bakara, 2:238" },
+  { ar: "إِنَّ اللّهَ مَعَ الصَّابِرِينَ", tr: "Şüphesiz Allah sabredenlerle beraberdir.", ref: "Bakara, 2:153" },
+  { ar: "حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ", tr: "Allah bize yeter, O ne güzel vekildir.", ref: "Al-i İmran, 3:173" }
 ];
-
-// Nur Ayet über Namaz für die Anzeige auswählen
-const prayerAyatList = ayatList.filter(function (a) {
-  return a.tr.toLowerCase().indexOf("namaz") !== -1 ||
-         a.tr.toLowerCase().indexOf("salat") !== -1 ||
-         a.ref.indexOf("Nisa, 4:103") !== -1;
-});
 
 let currentMode = "normal"; // "normal" oder "ramadan"
 let kerahatIntervalId = null;
+
+// Hilfsfunktionen
 
 function cleanTime(str) {
   return String(str).split(" ")[0];
 }
 
+function pad2(n) {
+  return String(n).toString().padStart(2, "0");
+}
+
+// YEAR-Daten laden + in localStorage cachen
 async function loadYearData(year) {
   if (prayerData[year]) return;
+
+  const storageKey = "velbert-prayer-" + year;
+
+  // aus localStorage lesen
+  try {
+    const cached = localStorage.getItem(storageKey);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (
+        parsed &&
+        Array.isArray(parsed.yearRows) &&
+        Array.isArray(parsed.ramadanRows)
+      ) {
+        prayerData[year] = {
+          year: parsed.yearRows,
+          ramadan: parsed.ramadanRows
+        };
+        return;
+      }
+    }
+  } catch (e) {
+    console.warn("localStorage read error", e);
+  }
 
   const yearRows = [];
   const ramadanRows = [];
 
   for (let month = 1; month <= 12; month++) {
     const url =
-      API_BASE + "/v1/calendarByCity?" +
-      "city=" + encodeURIComponent(CITY) +
-      "&country=" + encodeURIComponent(COUNTRY) +
-      "&method=" + METHOD +
-      "&month=" + month +
-      "&year=" + year;
+      API_BASE +
+      "/v1/calendarByCity?" +
+      "city=" +
+      encodeURIComponent(CITY) +
+      "&country=" +
+      encodeURIComponent(COUNTRY) +
+      "&method=" +
+      METHOD +
+      "&month=" +
+      month +
+      "&year=" +
+      year;
 
     const res = await fetch(url);
     const json = await res.json();
@@ -162,9 +180,19 @@ async function loadYearData(year) {
   }
 
   prayerData[year] = { year: yearRows, ramadan: ramadanRows };
+
+  // im localStorage speichern
+  try {
+    localStorage.setItem(
+      storageKey,
+      JSON.stringify({ yearRows: yearRows, ramadanRows: ramadanRows })
+    );
+  } catch (e) {
+    console.warn("localStorage write error", e);
+  }
 }
 
-// 365 Tage Bereich bestimmen und passende Jahre laden
+// Bereich [start, start+days) vorbereiten
 async function loadRangeData(startDate, days) {
   const start = new Date(startDate.getTime());
   start.setHours(0, 0, 0, 0);
@@ -192,9 +220,7 @@ async function loadRangeData(startDate, days) {
   return { start: start, end: end, rows: allRows, ramadanRows: allRamadan };
 }
 
-function pad2(n) {
-  return String(n).toString().padStart(2, "0");
-}
+// Uhr
 
 function updateClock() {
   if (!nowDateEl || !nowTimeEl) return;
@@ -210,15 +236,18 @@ function updateClock() {
   nowTimeEl.textContent = hh + ":" + mm + ":" + ss;
 }
 
+// Ayet
+
 function renderRandomAyah() {
   if (!ayAr || !ayTr || !ayRef) return;
-  const list = prayerAyatList.length > 0 ? prayerAyatList : ayatList;
-  const idx = Math.floor(Math.random() * list.length);
-  const ay = list[idx];
+  const idx = Math.floor(Math.random() * ayatList.length);
+  const ay = ayatList[idx];
   ayAr.textContent = ay.ar;
   ayTr.textContent = ay.tr;
   ayRef.textContent = ay.ref;
 }
+
+// Datum von Row
 
 function toDateFromRow(row) {
   return new Date(row.yearNum, row.monthNum - 1, row.dayNum);
@@ -231,206 +260,16 @@ function parseTimeOnDate(row, timeStr) {
   return new Date(row.yearNum, row.monthNum - 1, row.dayNum, hh, mm, 0, 0);
 }
 
-function renderTodayBlock(todayRow) {
-  if (
-    !todayRow ||
-    !todayImsakEl ||
-    !todayGunesEl ||
-    !todayOgleEl ||
-    !todayIkindiEl ||
-    !todayAksamEl ||
-    !todayYatsiEl ||
-    !todayDateLabel
-  ) {
-    return;
-  }
+// aktive Gebetszeit markieren
 
-  const d = pad2(todayRow.dayNum);
-  const mName = monthNamesTr[todayRow.monthNum] || "";
-  todayDateLabel.textContent =
-    todayRow.day + " • " + d + " " + mName + " " + todayRow.yearNum;
-
-  todayImsakEl.textContent = todayRow.imsak;
-  todayGunesEl.textContent = todayRow.gunes;
-  todayOgleEl.textContent = todayRow.ogle;
-  todayIkindiEl.textContent = todayRow.ikindi;
-  todayAksamEl.textContent = todayRow.aksam;
-  todayYatsiEl.textContent = todayRow.yatsi;
-
-  updateKerahat(todayRow);
-}
-
-function updateKerahat(todayRow) {
-  if (!kerahatStatusEl || !todayRow) return;
-
-  kerahatStatusEl.classList.remove("kerahat-active");
-
-  try {
-    const now = new Date();
-    const ikindiTime = parseTimeOnDate(todayRow, todayRow.ikindi);
-    const aksamTime = parseTimeOnDate(todayRow, todayRow.aksam);
-
-    if (now >= ikindiTime && now < aksamTime) {
-      const diffMin = (aksamTime - now) / (1000 * 60);
-      if (diffMin <= 45) {
-        kerahatStatusEl.textContent =
-          "Kerahat: İkindi ile Akşam arası son 45 dakika.";
-        kerahatStatusEl.classList.add("kerahat-active");
-        return;
-      }
-    }
-
-    kerahatStatusEl.textContent = "Kerahat: –";
-  } catch (e) {
-    console.error(e);
-    kerahatStatusEl.textContent = "Kerahat: –";
-  }
-}
-
-function setMode(newMode) {
-  currentMode = newMode;
-  for (let i = 0; i < modeButtons.length; i++) {
-    const btn = modeButtons[i];
-    if (btn.dataset.mode === newMode) {
-      btn.classList.add("active");
-    } else {
-      btn.classList.remove("active");
-    }
-  }
-
-  if (ramadanBanner) {
-    if (newMode === "ramadan") {
-      ramadanBanner.classList.add("visible");
-    } else {
-      ramadanBanner.classList.remove("visible");
-    }
-  }
-
-  if (tableHintEl) {
-    if (newMode === "normal") {
-      tableHintEl.innerHTML =
-        'Bugünden itibaren sonraki <strong>365 gün</strong> gösterilir.';
-    } else {
-      tableHintEl.textContent =
-        "Bugünden itibaren 365 gün içinde Ramazan günleri gösterilir.";
-    }
-  }
-
-  renderTableAndToday();
-}
-
-async function renderTableAndToday() {
-  if (!tableBody || !tableTitle) return;
-
-  tableBody.innerHTML =
-    '<tr><td colspan="8" style="padding:0.8rem;">Yükleniyor...</td></tr>';
-
-  try {
-    const rangeInfo = await loadRangeData(viewStartDate, 365);
-    const rangeStart = rangeInfo.start;
-    const rangeEnd = rangeInfo.end;
-    const allRows = rangeInfo.rows;
-    const allRamadanRows = rangeInfo.ramadanRows;
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const todayRow = allRows.find(function (row) {
-      const rd = toDateFromRow(row);
-      return rd.getTime() === today.getTime();
-    });
-
-    if (todayRow) {
-      renderTodayBlock(todayRow);
-      if (kerahatIntervalId) {
-        clearInterval(kerahatIntervalId);
-      }
-      kerahatIntervalId = setInterval(function () {
-        updateKerahat(todayRow);
-      }, 60000);
-    }
-
-    let rowsToShow = [];
-
-    if (currentMode === "normal") {
-      rowsToShow = allRows
-        .filter(function (row) {
-          const d = toDateFromRow(row);
-          return d >= rangeStart && d <= rangeEnd;
-        })
-        .sort(function (a, b) {
-          return toDateFromRow(a) - toDateFromRow(b);
-        });
-
-      tableTitle.textContent =
-        "Velbert – Namaz Takvimi (365 Gün)";
-    } else {
-      rowsToShow = allRamadanRows
-        .filter(function (row) {
-          const d = toDateFromRow(row);
-          return d >= rangeStart && d <= rangeEnd;
-        })
-        .sort(function (a, b) {
-          return toDateFromRow(a) - toDateFromRow(b);
-        });
-
-      tableTitle.textContent =
-        "Velbert – Ramazan Günleri (365 Günlük aralık içinde)";
-    }
-
-    tableBody.innerHTML = "";
-
-    if (rowsToShow.length === 0) {
-      const tr = document.createElement("tr");
-      tr.innerHTML =
-        '<td colspan="8" style="padding:0.8rem;">Gösterilecek gün bulunamadı.</td>';
-      tableBody.appendChild(tr);
-      return;
-    }
-
-    rowsToShow.forEach(function (row) {
-      const tr = document.createElement("tr");
-      tr.innerHTML =
-        '<td class="date-cell">' + row.date + "</td>" +
-        '<td class="day-cell">' + row.day + "</td>" +
-        "<td>" + row.imsak + "</td>" +
-        "<td>" + row.gunes + "</td>" +
-        "<td>" + row.ogle + "</td>" +
-        "<td>" + row.ikindi + "</td>" +
-        "<td>" + row.aksam + "</td>" +
-        "<td>" + row.yatsi + "</td>";
-      tableBody.appendChild(tr);
-    });
-  } catch (err) {
-    console.error(err);
-    tableBody.innerHTML =
-      '<tr><td colspan="8" style="padding:0.8rem;color:#fca5a5;">Namaz vakitleri alınırken bir hata oluştu. (CORS / ağ problemi olabilir.)</td></tr>';
-  }
-}
-
-/* Event-Listener */
-
-for (let i = 0; i < modeButtons.length; i++) {
-  const btn = modeButtons[i];
-  btn.addEventListener("click", function () {
-    const mode = btn.dataset.mode;
-    setMode(mode);
+function updateActivePrayer(todayRow) {
+  const allBoxes = document.querySelectorAll(".today-item");
+  allBoxes.forEach(function (el) {
+    el.classList.remove("active-prayer");
   });
-}
 
-if (refreshBtn) {
-  refreshBtn.addEventListener("click", function () {
-    // Startdatum auf "jetzt" setzen und 365 Tage neu laden
-    viewStartDate = new Date();
-    renderTableAndToday();
-  });
-}
+  if (!todayRow) return;
 
-/* Initialisierung */
-
-renderRandomAyah();
-updateClock();
-setInterval(updateClock, 1000);
-
-// Beim ersten Laden auch direkt 365 Tage ab heute anzeigen
-renderTableAndToday();
+  const slots = [
+    { key: "imsak", el: todayImsakEl, time: todayRow.imsak },
+    { key: "gunes", el: todayGunesEl,
