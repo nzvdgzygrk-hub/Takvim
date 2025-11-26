@@ -4,7 +4,641 @@
   <meta charset="utf-8" />
   <title>Velbert Namaz & Ramazan Vakitleri</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    :root {
+      --bg: #020617;
+      --bg-card: rgba(15, 23, 42, 0.92);
+      --bg-soft: rgba(15, 23, 42, 0.7);
+      --accent: #fbbf24;
+      --accent-soft: rgba(251, 191, 36, 0.18);
+      --accent-strong: #facc15;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --border-soft: rgba(148, 163, 184, 0.4);
+      --radius-lg: 1.5rem;
+      --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.55);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #0f172a, #020617 55%, #000 100%);
+      color: var(--text-main);
+    }
+
+    /* Hintergrunddeko */
+
+    .bg-decoration {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .moon {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #fef9c3, #facc15 55%, #854d0e);
+      top: -50px;
+      right: 5%;
+      filter: blur(0.3px);
+      box-shadow: 0 0 80px rgba(250, 204, 21, 0.7);
+    }
+
+    .lantern {
+      position: absolute;
+      width: 50px;
+      height: 130px;
+      border-radius: 999px;
+      border: 2px solid rgba(250, 204, 21, 0.6);
+      box-shadow: 0 0 40px rgba(250, 204, 21, 0.5);
+      background: linear-gradient(
+        180deg,
+        rgba(250, 250, 210, 0.9),
+        rgba(245, 158, 11, 0.05)
+      );
+    }
+
+    .lantern-left {
+      left: 8%;
+      top: 8%;
+    }
+
+    .lantern-right {
+      right: 18%;
+      top: 15%;
+    }
+
+    /* Layout */
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 3rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* Header */
+
+    .header-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-soft);
+      box-shadow: var(--shadow-lg);
+      padding: 1.4rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .top-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .author {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+    }
+
+    .author-name {
+      color: var(--accent-strong);
+      font-weight: 800;
+      font-size: 1.4rem;
+      letter-spacing: 0.05em;
+    }
+
+    .now {
+      text-align: right;
+      font-size: 0.95rem;
+    }
+
+    .now-date {
+      color: var(--text-main);
+    }
+
+    .now-time {
+      color: var(--accent-strong);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      font-size: 1.05rem;
+    }
+
+    .title-block {
+      text-align: center;
+    }
+
+    .title-block h1 {
+      font-size: clamp(2rem, 4vw, 2.6rem);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* BUGÜNKÜ */
+
+    .today-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-soft);
+      box-shadow: var(--shadow-lg);
+      padding: 1.6rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .today-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .today-side-icon {
+      width: 110px;
+      height: 110px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: radial-gradient(
+        circle,
+        rgba(15, 23, 42, 0.9),
+        rgba(15, 23, 42, 0.4)
+      );
+      border: 1px solid rgba(250, 204, 21, 0.7);
+      box-shadow: 0 0 25px rgba(250, 204, 21, 0.5);
+    }
+
+    .today-side-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .today-center {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .today-header h2 {
+      font-size: 1.4rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .today-date-label {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .today-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .today-item {
+      background: var(--bg-soft);
+      border-radius: 1rem;
+      padding: 0.9rem 0.8rem;
+      text-align: center;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      transition: all 0.18s ease-out;
+    }
+
+    .today-item .today-time {
+      display: block;
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .today-item.active-prayer {
+      border-color: var(--accent);
+      box-shadow: 0 0 22px rgba(250, 204, 21, 0.6);
+      background: radial-gradient(
+        circle at top,
+        rgba(251, 191, 36, 0.2),
+        var(--bg-soft)
+      );
+    }
+
+    .today-item.active-prayer .today-time {
+      color: var(--accent-strong);
+    }
+
+    .today-label {
+      display: block;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 0.3rem;
+    }
+
+    .today-extra {
+      display: flex;
+      justify-content: flex-start;
+    }
+
+    /* Kerahat */
+
+    .kerahat-status {
+      font-size: 1rem;
+      padding: 0.4rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(248, 113, 113, 0.7);
+      color: #fecaca;
+      display: none;
+    }
+
+    .kerahat-visible {
+      display: inline-flex;
+    }
+
+    .kerahat-active {
+      animation: kerahat-blink 0.9s linear infinite;
+    }
+
+    @keyframes kerahat-blink {
+      0%,
+      100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.25;
+      }
+    }
+
+    /* Ayet */
+
+    .ayah-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-soft);
+      box-shadow: var(--shadow-lg);
+      padding: 1.4rem 1.3rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .ayah-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .ayah-card h2 {
+      font-size: 1.1rem;
+    }
+
+    .next-ayah-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(250, 204, 21, 0.9);
+      background: radial-gradient(
+        circle at top,
+        rgba(250, 204, 21, 0.3),
+        rgba(15, 23, 42, 0.95)
+      );
+      color: #fef9c3;
+      padding: 0.3rem 0.9rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.18s ease-out;
+    }
+
+    .next-ayah-btn:hover {
+      background: radial-gradient(
+        circle at top,
+        rgba(250, 204, 21, 0.5),
+        rgba(15, 23, 42, 0.9)
+      );
+      box-shadow: 0 0 16px rgba(250, 204, 21, 0.7);
+    }
+
+    .ayah-ar {
+      font-size: 1.3rem;
+      direction: rtl;
+      text-align: right;
+    }
+
+    .ayah-tr {
+      font-size: 0.95rem;
+    }
+
+    .ayah-ref {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Offset */
+
+    .offset-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-soft);
+      box-shadow: var(--shadow-lg);
+      padding: 1.4rem 1.3rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+    }
+
+    .offset-card h2 {
+      font-size: 1.1rem;
+    }
+
+    .offset-hint {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .offset-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .offset-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem 1rem;
+    }
+
+    .offset-grid label {
+      font-size: 0.85rem;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .offset-grid input {
+      padding: 0.35rem 0.45rem;
+      border-radius: 0.6rem;
+      border: 1px solid rgba(148, 163, 184, 0.8);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-main);
+      font-size: 0.85rem;
+    }
+
+    .offset-save-btn {
+      align-self: flex-start;
+      border-radius: 999px;
+      border: 1px solid rgba(59, 130, 246, 0.9);
+      background: rgba(37, 99, 235, 0.2);
+      color: #dbeafe;
+      padding: 0.4rem 1rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.18s ease-out;
+    }
+
+    .offset-save-btn:hover {
+      background: rgba(37, 99, 235, 0.35);
+      box-shadow: 0 0 16px rgba(37, 99, 235, 0.7);
+    }
+
+    /* Tabelle */
+
+    .table-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-soft);
+      box-shadow: var(--shadow-lg);
+      padding: 1.5rem 1.4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .table-card-ramadan {
+      border-color: rgba(250, 204, 21, 0.8);
+      box-shadow: 0 0 32px rgba(250, 204, 21, 0.45);
+    }
+
+    .table-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .mode-toggle {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .mode-btn {
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: var(--bg-soft);
+      color: var(--text-main);
+      padding: 0.4rem 0.9rem;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.18s ease-out;
+    }
+
+    .mode-btn.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: #fefce8;
+      box-shadow: 0 0 18px rgba(250, 204, 21, 0.4);
+    }
+
+    .mode-btn[data-mode="ramadan"].active {
+      background: radial-gradient(
+        circle at top,
+        rgba(250, 204, 21, 0.4),
+        rgba(15, 23, 42, 0.9)
+      );
+    }
+
+    .refresh-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(52, 211, 153, 0.9);
+      background: rgba(22, 163, 74, 0.15);
+      color: #bbf7d0;
+      padding: 0.45rem 1.1rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: all 0.18s ease-out;
+    }
+
+    .refresh-btn:hover {
+      background: rgba(22, 163, 74, 0.3);
+      box-shadow: 0 0 16px rgba(22, 163, 74, 0.6);
+    }
+
+    .ramadan-banner {
+      display: none;
+      padding: 0.5rem;
+      border-radius: 1rem;
+      border: 1px solid rgba(254, 243, 199, 0.9);
+      box-shadow: 0 0 30px rgba(250, 204, 21, 0.5);
+      background: radial-gradient(circle at top, #020617, #000);
+    }
+
+    .ramadan-banner.visible {
+      display: block;
+    }
+
+    .ramadan-img {
+      width: 100%;
+      height: auto;
+      max-height: 260px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .table-header h2 {
+      font-size: 1.25rem;
+      margin-top: 0.3rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .table-hint {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .table-wrapper {
+      border-radius: 1rem;
+      border: 1px solid var(--border-soft);
+      overflow: auto;
+      max-height: 60vh;
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .table-wrapper table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .table-wrapper thead {
+      position: sticky;
+      top: 0;
+      background: rgba(15, 23, 42, 0.98);
+      z-index: 1;
+    }
+
+    .table-wrapper th,
+    .table-wrapper td {
+      padding: 0.55rem 0.55rem;
+      text-align: center;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+    }
+
+    .table-wrapper th {
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      color: #9ca3af;
+    }
+
+    .table-wrapper tbody tr:nth-child(even) {
+      background: rgba(15, 23, 42, 0.8);
+    }
+
+    .table-wrapper tbody tr:nth-child(odd) {
+      background: rgba(15, 23, 42, 0.65);
+    }
+
+    .table-wrapper tbody td.date-cell {
+      font-weight: 600;
+    }
+
+    .table-wrapper tbody td.day-cell {
+      color: var(--text-muted);
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+
+    @media (max-width: 640px) {
+      .header-card,
+      .today-card,
+      .table-card,
+      .ayah-card,
+      .offset-card {
+        padding: 1.25rem 1rem;
+      }
+
+      .now {
+        text-align: left;
+      }
+
+      .today-row {
+        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+
+      .today-side-icon {
+        width: 90px;
+        height: 90px;
+      }
+
+      .today-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .table-wrapper {
+        max-height: 55vh;
+      }
+
+      .table-top {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .refresh-btn {
+        align-self: flex-start;
+      }
+
+      .offset-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
 </head>
 <body>
   <div class="bg-decoration">
@@ -96,46 +730,48 @@
       <p id="ayah-ref" class="ayah-ref"></p>
     </section>
 
-    <!-- OFFSET-EINSTELLUNGEN -->
+    <!-- OFFSET-EINSTELLUNG -->
     <section class="offset-card">
       <h2>Vakit Düzeltme (Dakika)</h2>
       <p class="offset-hint">
-        Namaz vakitlerini kendi takviminle eşitlemek için dakika farkını gir.
-        (Pozitif = daha geç, negatif = daha erken)
+        Telefonundaki Namaz-Vakti-App zeigt andere Zeiten? Burada her vakit
+        için dakika farkını girebilirsin. Pozitif = daha geç, Negatif = daha
+        erken (örnek: -2).
       </p>
-      <div class="offset-grid">
-        <div class="offset-item">
-          <label for="offset-imsak">İmsak</label>
-          <input type="number" id="offset-imsak" />
+      <form id="offset-form" class="offset-form">
+        <div class="offset-grid">
+          <label>
+            İmsak
+            <input type="number" step="1" data-offset-key="imsak" />
+          </label>
+          <label>
+            Güneş
+            <input type="number" step="1" data-offset-key="gunes" />
+          </label>
+          <label>
+            Öğle
+            <input type="number" step="1" data-offset-key="ogle" />
+          </label>
+          <label>
+            İkindi
+            <input type="number" step="1" data-offset-key="ikindi" />
+          </label>
+          <label>
+            Akşam
+            <input type="number" step="1" data-offset-key="aksam" />
+          </label>
+          <label>
+            Yatsı
+            <input type="number" step="1" data-offset-key="yatsi" />
+          </label>
         </div>
-        <div class="offset-item">
-          <label for="offset-gunes">Güneş</label>
-          <input type="number" id="offset-gunes" />
-        </div>
-        <div class="offset-item">
-          <label for="offset-ogle">Öğle</label>
-          <input type="number" id="offset-ogle" />
-        </div>
-        <div class="offset-item">
-          <label for="offset-ikindi">İkindi</label>
-          <input type="number" id="offset-ikindi" />
-        </div>
-        <div class="offset-item">
-          <label for="offset-aksam">Akşam</label>
-          <input type="number" id="offset-aksam" />
-        </div>
-        <div class="offset-item">
-          <label for="offset-yatsi">Yatsı</label>
-          <input type="number" id="offset-yatsi" />
-        </div>
-      </div>
-      <button id="offset-save-btn" class="offset-save-btn">
-        Ayarları Kaydet
-      </button>
-      <p class="offset-saved" id="offset-saved-msg"></p>
+        <button type="submit" class="offset-save-btn">
+          Kaydet &amp; Vakitleri Yeniden Yükle
+        </button>
+      </form>
     </section>
 
-    <!-- TABELLE -->
+    <!-- TABELLE + MODUS -->
     <section class="table-card">
       <div class="table-top">
         <div class="mode-toggle">
@@ -155,7 +791,7 @@
         <img
           src="ramazan.jpg"
           alt="Hoşgeldin Ya Şehr-i Ramazan"
-          class="ramadan-img"
+          class="ramazan-img"
         />
       </div>
 
@@ -180,8 +816,7 @@
               <th>Yatsı</th>
             </tr>
           </thead>
-          <tbody id="times-body">
-          </tbody>
+          <tbody id="times-body"></tbody>
         </table>
       </div>
     </section>
@@ -194,6 +829,590 @@
     </footer>
   </main>
 
-  <script src="script.js"></script>
+  <script>
+    // Basis-Konfiguration
+    const CITY = "Velbert";
+    const COUNTRY = "Germany";
+    const METHOD = 13;
+    const API_BASE = "https://api.aladhan.com";
+
+    const DEFAULT_OFFSETS = {
+      imsak: 0,
+      gunes: 0,
+      ogle: 0,
+      ikindi: 0,
+      aksam: 0,
+      yatsi: 0
+    };
+
+    const OFFSETS_KEY = "velbertOffsets";
+    const CACHE_KEY = "velbertPrayerCache";
+
+    let viewStartDate = new Date();
+    const prayerData = {};
+    let OFFSETS = loadOffsets();
+    let currentMode = "normal";
+    let kerahatIntervalId = null;
+
+    const tableBody = document.getElementById("times-body");
+    const tableTitle = document.getElementById("table-title");
+    const tableHintEl = document.getElementById("table-hint");
+    const ramadanBanner = document.getElementById("ramadan-banner");
+    const modeButtons = document.querySelectorAll(".mode-btn");
+    const refreshBtn = document.getElementById("refresh-btn");
+    const tableCard = document.querySelector(".table-card");
+
+    const ayAr = document.getElementById("ayah-ar");
+    const ayTr = document.getElementById("ayah-tr");
+    const ayRef = document.getElementById("ayah-ref");
+    const nextAyahBtn = document.getElementById("next-ayah-btn");
+
+    const nowDateEl = document.getElementById("now-date");
+    const nowTimeEl = document.getElementById("now-time");
+
+    const todayDateLabel = document.getElementById("today-date-label");
+    const todayImsakEl = document.getElementById("today-imsak");
+    const todayGunesEl = document.getElementById("today-gunes");
+    const todayOgleEl = document.getElementById("today-ogle");
+    const todayIkindiEl = document.getElementById("today-ikindi");
+    const todayAksamEl = document.getElementById("today-aksam");
+    const todayYatsiEl = document.getElementById("today-yatsi");
+    const kerahatStatusEl = document.getElementById("kerahat-status");
+
+    const offsetForm = document.getElementById("offset-form");
+    const offsetInputs = document.querySelectorAll("[data-offset-key]");
+
+    const weekdayMap = {
+      Sunday: "Pazar",
+      Monday: "Pazartesi",
+      Tuesday: "Salı",
+      Wednesday: "Çarşamba",
+      Thursday: "Perşembe",
+      Friday: "Cuma",
+      Saturday: "Cumartesi"
+    };
+
+    const monthNamesTr = [
+      "",
+      "Ocak",
+      "Şubat",
+      "Mart",
+      "Nisan",
+      "Mayıs",
+      "Haziran",
+      "Temmuz",
+      "Ağustos",
+      "Eylül",
+      "Ekim",
+      "Kasım",
+      "Aralık"
+    ];
+
+    const ayatList = [
+      {
+        ar: "إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَّوْقُوتًا",
+        tr: "Namaz, müminler üzerine vakitleri belirlenmiş bir farzdır.",
+        ref: "Nisa, 4:103"
+      },
+      {
+        ar: "وَأَقِمِ الصَّلَاةَ لِذِكْرِي",
+        tr: "Beni anmak için namaz kıl.",
+        ref: "Taha, 20:14"
+      },
+      {
+        ar: "وَاسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ",
+        tr: "Sabır ve namazla Allah’tan yardım isteyin.",
+        ref: "Bakara, 2:45"
+      },
+      {
+        ar: "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ",
+        tr: "Kalpler ancak Allah’ı zikretmekle huzur bulur.",
+        ref: "Ra’d, 13:28"
+      },
+      {
+        ar: "حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ",
+        tr: "Allah bize yeter, O ne güzel vekildir.",
+        ref: "Al-i İmran, 3:173"
+      },
+      {
+        ar: "رَبِّ زِدْنِي عِلْمًا",
+        tr: "Rabbim, ilmimi artır.",
+        ref: "Taha, 20:114"
+      }
+    ];
+
+    function loadOffsets() {
+      try {
+        const raw = localStorage.getItem(OFFSETS_KEY);
+        if (!raw) return { ...DEFAULT_OFFSETS };
+        const parsed = JSON.parse(raw);
+        return { ...DEFAULT_OFFSETS, ...parsed };
+      } catch {
+        return { ...DEFAULT_OFFSETS };
+      }
+    }
+
+    function saveOffsets(newOffsets) {
+      OFFSETS = { ...DEFAULT_OFFSETS, ...newOffsets };
+      try {
+        localStorage.setItem(OFFSETS_KEY, JSON.stringify(OFFSETS));
+      } catch {}
+    }
+
+    function cacheSignature() {
+      return JSON.stringify({
+        city: CITY,
+        country: COUNTRY,
+        method: METHOD,
+        offsets: OFFSETS
+      });
+    }
+
+    function savePrayerCache(info) {
+      try {
+        const payload = {
+          sig: cacheSignature(),
+          start: info.start.toISOString().slice(0, 10),
+          rows: info.rows,
+          ramadanRows: info.ramadanRows
+        };
+        localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
+      } catch (e) {
+        console.warn("cache save error", e);
+      }
+    }
+
+    function loadPrayerCache() {
+      try {
+        const raw = localStorage.getItem(CACHE_KEY);
+        if (!raw) return null;
+        const data = JSON.parse(raw);
+        if (data.sig !== cacheSignature()) return null;
+
+        const start = new Date(data.start + "T00:00:00");
+        const end = new Date(start.getTime());
+        end.setDate(end.getDate() + (data.rows?.length || 0) - 1);
+        viewStartDate = start;
+
+        return {
+          start,
+          end,
+          rows: data.rows || [],
+          ramadanRows: data.ramadanRows || []
+        };
+      } catch (e) {
+        console.warn("cache load error", e);
+        return null;
+      }
+    }
+
+    function clearPrayerCache() {
+      try {
+        localStorage.removeItem(CACHE_KEY);
+      } catch {}
+    }
+
+    function syncOffsetInputs() {
+      offsetInputs.forEach((input) => {
+        const key = input.dataset.offsetKey;
+        input.value = OFFSETS[key] ?? 0;
+      });
+    }
+
+    function cleanTime(str) {
+      return String(str).split(" ")[0];
+    }
+
+    function pad2(n) {
+      return String(n).toString().padStart(2, "0");
+    }
+
+    function applyOffsetToTime(timeStr, offsetMinutes) {
+      if (!offsetMinutes) return timeStr;
+      const [hhStr, mmStr] = timeStr.split(":");
+      let hh = parseInt(hhStr, 10);
+      let mm = parseInt(mmStr, 10);
+
+      let total = hh * 60 + mm + offsetMinutes;
+      total = ((total % 1440) + 1440) % 1440;
+
+      const newH = Math.floor(total / 60);
+      const newM = total % 60;
+      return pad2(newH) + ":" + pad2(newM);
+    }
+
+    function toDateFromRow(row) {
+      return new Date(row.yearNum, row.monthNum - 1, row.dayNum);
+    }
+
+    function parseTimeOnDate(row, timeStr) {
+      const [hh, mm] = timeStr.split(":").map((v) => parseInt(v, 10));
+      return new Date(row.yearNum, row.monthNum - 1, row.dayNum, hh, mm, 0, 0);
+    }
+
+    async function loadYearData(year) {
+      if (prayerData[year]) return;
+
+      const yearRows = [];
+      const ramadanRows = [];
+
+      for (let month = 1; month <= 12; month++) {
+        const url =
+          API_BASE +
+          "/v1/calendarByCity?" +
+          "city=" +
+          encodeURIComponent(CITY) +
+          "&country=" +
+          encodeURIComponent(COUNTRY) +
+          "&method=" +
+          METHOD +
+          "&month=" +
+          month +
+          "&year=" +
+          year;
+
+        const res = await fetch(url);
+        const json = await res.json();
+
+        if (json.code !== 200 || !Array.isArray(json.data)) {
+          console.error("API error", json);
+          throw new Error("Namaz vakti API hatası: " + json.status);
+        }
+
+        json.data.forEach((dayObj) => {
+          const g = dayObj.date.gregorian;
+          const h = dayObj.date.hijri;
+          const t = dayObj.timings;
+
+          const [dayStr, monthStr, yearStr] = g.date.split("-");
+          const d = parseInt(dayStr, 10);
+          const m = parseInt(monthStr, 10);
+          const y = parseInt(yearStr, 10);
+
+          const weekdayEn = g.weekday.en;
+          const weekdayTr = weekdayMap[weekdayEn] || weekdayEn;
+
+          const imsakRaw = cleanTime(t.Imsak);
+          const gunesRaw = cleanTime(t.Sunrise);
+          const ogleRaw = cleanTime(t.Dhuhr);
+          const ikindiRaw = cleanTime(t.Asr);
+          const aksamRaw = cleanTime(t.Maghrib);
+          const yatsiRaw = cleanTime(t.Isha);
+
+          const row = {
+            date: `${dayStr}.${monthStr}.${yearStr}`,
+            day: weekdayTr,
+            dayNum: d,
+            monthNum: m,
+            yearNum: y,
+            imsak: applyOffsetToTime(imsakRaw, OFFSETS.imsak),
+            gunes: applyOffsetToTime(gunesRaw, OFFSETS.gunes),
+            ogle: applyOffsetToTime(ogleRaw, OFFSETS.ogle),
+            ikindi: applyOffsetToTime(ikindiRaw, OFFSETS.ikindi),
+            aksam: applyOffsetToTime(aksamRaw, OFFSETS.aksam),
+            yatsi: applyOffsetToTime(yatsiRaw, OFFSETS.yatsi),
+            isRamadan: h.month.number === 9
+          };
+
+          yearRows.push(row);
+          if (row.isRamadan) ramadanRows.push(row);
+        });
+      }
+
+      prayerData[year] = { year: yearRows, ramadan: ramadanRows };
+    }
+
+    async function loadRangeData(startDate, days) {
+      const start = new Date(startDate.getTime());
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(start.getTime());
+      end.setDate(end.getDate() + (days - 1));
+      end.setHours(0, 0, 0, 0);
+
+      const startYear = start.getFullYear();
+      const endYear = end.getFullYear();
+
+      for (let y = startYear; y <= endYear; y++) {
+        await loadYearData(y);
+      }
+
+      const allRows = [];
+      const allRamadan = [];
+
+      for (let y = startYear; y <= endYear; y++) {
+        const data = prayerData[y];
+        if (!data) continue;
+        allRows.push(...data.year);
+        allRamadan.push(...data.ramadan);
+      }
+
+      return { start, end, rows: allRows, ramadanRows: allRamadan };
+    }
+
+    function updateClock() {
+      if (!nowDateEl || !nowTimeEl) return;
+      const now = new Date();
+      const d = pad2(now.getDate());
+      const m = pad2(now.getMonth() + 1);
+      const y = now.getFullYear();
+      const hh = pad2(now.getHours());
+      const mm = pad2(now.getMinutes());
+      const ss = pad2(now.getSeconds());
+      nowDateEl.textContent = `${d}.${m}.${y}`;
+      nowTimeEl.textContent = `${hh}:${mm}:${ss}`;
+    }
+
+    function renderRandomAyah() {
+      if (!ayAr || !ayTr || !ayRef || ayatList.length === 0) return;
+      const idx = Math.floor(Math.random() * ayatList.length);
+      const ay = ayatList[idx];
+      ayAr.textContent = ay.ar;
+      ayTr.textContent = ay.tr;
+      ayRef.textContent = ay.ref;
+    }
+
+    function updateActivePrayer(todayRow) {
+      const boxes = document.querySelectorAll(".today-item");
+      boxes.forEach((b) => b.classList.remove("active-prayer"));
+
+      if (!todayRow) return;
+
+      const slots = [
+        { key: "imsak", el: todayImsakEl, time: todayRow.imsak },
+        { key: "gunes", el: todayGunesEl, time: todayRow.gunes },
+        { key: "ogle", el: todayOgleEl, time: todayRow.ogle },
+        { key: "ikindi", el: todayIkindiEl, time: todayRow.ikindi },
+        { key: "aksam", el: todayAksamEl, time: todayRow.aksam },
+        { key: "yatsi", el: todayYatsiEl, time: todayRow.yatsi }
+      ];
+
+      const now = new Date();
+      const times = slots.map((s) => ({
+        key: s.key,
+        el: s.el,
+        date: parseTimeOnDate(todayRow, s.time)
+      }));
+
+      let activeKey = null;
+      for (let i = 0; i < times.length; i++) {
+        const cur = times[i];
+        const next = times[i + 1];
+        if (now >= cur.date && (!next || now < next.date)) {
+          activeKey = cur.key;
+          break;
+        }
+      }
+
+      if (!activeKey) return;
+
+      const activeSlot = slots.find((s) => s.key === activeKey);
+      if (activeSlot && activeSlot.el) {
+        const box = activeSlot.el.closest(".today-item");
+        if (box) box.classList.add("active-prayer");
+      }
+    }
+
+    function updateKerahat(todayRow) {
+      if (!kerahatStatusEl || !todayRow) return;
+
+      kerahatStatusEl.classList.remove("kerahat-active", "kerahat-visible");
+      kerahatStatusEl.textContent = "";
+
+      try {
+        const now = new Date();
+        const ikindiTime = parseTimeOnDate(todayRow, todayRow.ikindi);
+        const aksamTime = parseTimeOnDate(todayRow, todayRow.aksam);
+
+        if (now >= ikindiTime && now < aksamTime) {
+          const diffMin = (aksamTime - now) / (1000 * 60);
+          if (diffMin <= 45) {
+            kerahatStatusEl.textContent =
+              "Kerahat vakti: İkindi ile Akşam arası son 45 dakika.";
+            kerahatStatusEl.classList.add("kerahat-active", "kerahat-visible");
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderTodayBlock(todayRow) {
+      if (!todayRow || !todayDateLabel) return;
+
+      const d = pad2(todayRow.dayNum);
+      const mName = monthNamesTr[todayRow.monthNum] || "";
+      todayDateLabel.textContent =
+        todayRow.day + " • " + d + " " + mName + " " + todayRow.yearNum;
+
+      todayImsakEl.textContent = todayRow.imsak;
+      todayGunesEl.textContent = todayRow.gunes;
+      todayOgleEl.textContent = todayRow.ogle;
+      todayIkindiEl.textContent = todayRow.ikindi;
+      todayAksamEl.textContent = todayRow.aksam;
+      todayYatsiEl.textContent = todayRow.yatsi;
+
+      updateKerahat(todayRow);
+      updateActivePrayer(todayRow);
+    }
+
+    function setMode(newMode) {
+      currentMode = newMode;
+
+      modeButtons.forEach((btn) => {
+        if (btn.dataset.mode === newMode) btn.classList.add("active");
+        else btn.classList.remove("active");
+      });
+
+      if (ramadanBanner) {
+        if (newMode === "ramadan") ramadanBanner.classList.add("visible");
+        else ramadanBanner.classList.remove("visible");
+      }
+
+      if (tableCard) {
+        if (newMode === "ramadan") tableCard.classList.add("table-card-ramadan");
+        else tableCard.classList.remove("table-card-ramadan");
+      }
+
+      if (tableHintEl) {
+        if (newMode === "normal") {
+          tableHintEl.innerHTML =
+            "Bugünden itibaren sonraki <strong>365 gün</strong> gösterilir.";
+        } else {
+          tableHintEl.textContent =
+            "Bugünden itibaren 365 gün içinde Ramazan günleri gösterilir.";
+        }
+      }
+
+      renderTableAndToday();
+    }
+
+    async function renderTableAndToday() {
+      if (!tableBody || !tableTitle) return;
+
+      tableBody.innerHTML =
+        '<tr><td colspan="8" style="padding:0.8rem;">Yükleniyor...</td></tr>';
+
+      try {
+        let info = loadPrayerCache();
+        if (!info) {
+          info = await loadRangeData(viewStartDate, 365);
+          savePrayerCache(info);
+        }
+
+        const { start, end, rows, ramadanRows } = info;
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const todayRow = rows.find(
+          (row) => toDateFromRow(row).getTime() === today.getTime()
+        );
+        if (todayRow) {
+          renderTodayBlock(todayRow);
+          if (kerahatIntervalId) clearInterval(kerahatIntervalId);
+          kerahatIntervalId = setInterval(() => {
+            updateKerahat(todayRow);
+            updateActivePrayer(todayRow);
+          }, 60000);
+        }
+
+        let rowsToShow;
+        if (currentMode === "normal") {
+          rowsToShow = rows
+            .filter((row) => {
+              const d = toDateFromRow(row);
+              return d >= start && d <= end;
+            })
+            .sort((a, b) => toDateFromRow(a) - toDateFromRow(b));
+          tableTitle.textContent = "Velbert – Namaz Takvimi (365 Gün)";
+        } else {
+          rowsToShow = ramadanRows
+            .filter((row) => {
+              const d = toDateFromRow(row);
+              return d >= start && d <= end;
+            })
+            .sort((a, b) => toDateFromRow(a) - toDateFromRow(b));
+          tableTitle.textContent =
+            "Velbert – Ramazan Günleri (365 Günlük aralık içinde)";
+        }
+
+        tableBody.innerHTML = "";
+
+        if (!rowsToShow.length) {
+          const tr = document.createElement("tr");
+          tr.innerHTML =
+            '<td colspan="8" style="padding:0.8rem;">Gösterilecek gün bulunamadı.</td>';
+          tableBody.appendChild(tr);
+          return;
+        }
+
+        rowsToShow.forEach((row) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML =
+            `<td class="date-cell">${row.date}</td>` +
+            `<td class="day-cell">${row.day}</td>` +
+            `<td>${row.imsak}</td>` +
+            `<td>${row.gunes}</td>` +
+            `<td>${row.ogle}</td>` +
+            `<td>${row.ikindi}</td>` +
+            `<td>${row.aksam}</td>` +
+            `<td>${row.yatsi}</td>`;
+          tableBody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error(err);
+        tableBody.innerHTML =
+          '<tr><td colspan="8" style="padding:0.8rem;color:#fca5a5;">Namaz vakitleri alınırken bir hata oluştu. (Ağ veya CORS problemi olabilir.)</td></tr>';
+      }
+    }
+
+    modeButtons.forEach((btn) => {
+      btn.addEventListener("click", () => setMode(btn.dataset.mode));
+    });
+
+    if (refreshBtn) {
+      refreshBtn.addEventListener("click", () => {
+        viewStartDate = new Date();
+        clearPrayerCache();
+        for (const y in prayerData) delete prayerData[y];
+        renderTableAndToday();
+      });
+    }
+
+    if (nextAyahBtn) {
+      nextAyahBtn.addEventListener("click", () => {
+        renderRandomAyah();
+      });
+    }
+
+    if (offsetForm) {
+      offsetForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const newOffsets = { ...OFFSETS };
+        offsetInputs.forEach((input) => {
+          const key = input.dataset.offsetKey;
+          const val = parseInt(input.value, 10);
+          newOffsets[key] = isNaN(val) ? 0 : val;
+        });
+        saveOffsets(newOffsets);
+
+        clearPrayerCache();
+        for (const year in prayerData) {
+          delete prayerData[year];
+        }
+        renderTableAndToday();
+      });
+    }
+
+    function init() {
+      syncOffsetInputs();
+      renderRandomAyah();
+      updateClock();
+      setInterval(updateClock, 1000);
+      renderTableAndToday();
+    }
+
+    document.addEventListener("DOMContentLoaded", init);
+  </script>
 </body>
 </html>
